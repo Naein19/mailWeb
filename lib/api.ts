@@ -1,10 +1,4 @@
-import { createClient } from '@supabase/supabase-js'
-
-// Supabase client
-export const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+import type { Cluster, Email } from '@/lib/types'
 
 // Mock data for fallback
 const MOCK_CLUSTERS = [
@@ -72,164 +66,92 @@ const MOCK_EMAILS = [
   },
 ]
 
-// Get all clusters with email data
-export async function getClusters() {
+type AnalyticsData = {
+  totalEmails: number
+  processedEmails: number
+  totalClusters: number
+  totalErrors: number
+  avgEmailsPerCluster: number
+  successRate: number
+}
+
+type ProcessingError = {
+  id: string
+  message_id: string
+  error_type: string
+  error_message: string
+  created_at: string
+}
+
+type EmailStatusDistribution = {
+  status: string
+  count: number
+}
+
+async function safeFetch<T>(url: string): Promise<T | null> {
   try {
-    // Check if Supabase is configured
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-      console.warn('Supabase not configured, using mock data')
-      return getMockClusters()
+    const response = await fetch(url, {
+      method: 'GET',
+      cache: 'no-store',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!response.ok) {
+      return null
     }
 
-    const { data, error } = await supabase
-      .from('clusters')
-      .select('*')
-      .order('updated_at', { ascending: false })
-      .limit(50)
+    return (await response.json()) as T
+  } catch {
+    return null
+  }
+}
 
-    if (error) {
-      console.warn('Error fetching clusters from Supabase, using mock data:', error.message)
-      return getMockClusters()
-    }
+// Get all clusters with email data
+export async function getClusters(): Promise<Cluster[]> {
+  try {
+    const data = await safeFetch<Cluster[]>('/api/clusters')
 
     if (!data || data.length === 0) {
-      console.warn('No clusters found in Supabase, using mock data')
       return getMockClusters()
     }
 
-    return data.map((cluster: any) => ({
-      id: cluster.cluster_id,
-      title: `${cluster.summary?.slice(0, 40) || 'Cluster'} – ${cluster.email_count} emails`,
-      summary: cluster.summary || 'No summary available',
-      priority: determinePriority(cluster.email_count),
-      email_count: cluster.email_count || 0,
-      updated_at: cluster.updated_at,
-      created_at: cluster.created_at,
-    }))
+    return data
   } catch (error) {
-    console.error('Error fetching clusters:', error)
+    console.error('Failed to fetch clusters')
     return getMockClusters()
   }
 }
 
 // Get emails for a specific cluster
-export async function getEmailsForCluster(clusterId: string) {
+export async function getEmailsForCluster(clusterId: string): Promise<Email[]> {
   try {
-    // Check if Supabase is configured
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    const data = await safeFetch<Email[]>(`/api/clusters/${encodeURIComponent(clusterId)}/emails`)
+
+    if (!data || data.length === 0) {
       return getMockEmails()
     }
 
-    // Get message IDs for this cluster
-    const { data: clusterData, error: clusterError } = await supabase
-      .from('email_clusters')
-      .select('message_id')
-      .eq('cluster_id', clusterId)
-      .limit(100)
-
-    if (clusterError) {
-      console.warn('Error fetching cluster emails:', clusterError.message)
-      return getMockEmails()
-    }
-
-    if (!clusterData || clusterData.length === 0) {
-      return getMockEmails()
-    }
-
-    // Get email details
-    const messageIds = clusterData.map((c: any) => c.message_id)
-    const { data: emailsData, error: emailsError } = await supabase
-      .from('emails')
-      .select('*')
-      .in('message_id', messageIds)
-
-    if (emailsError) {
-      console.warn('Error fetching email details:', emailsError.message)
-      return getMockEmails()
-    }
-
-    if (!emailsData || emailsData.length === 0) {
-      return getMockEmails()
-    }
-
-    return emailsData.map((email: any) => ({
-      id: email.message_id,
-      cluster_id: clusterId,
-      sender: email.sender || 'Unknown',
-      sender_email: extractEmail(email.sender) || 'unknown@email.com',
-      subject: email.subject || 'No Subject',
-      body: email.body || '',
-      body_html: email.body,
-      timestamp: email.created_at,
-      is_read: email.status === 'processed',
-      is_important: false,
-      tags: ['email'],
-    }))
+    return data
   } catch (error) {
-    console.error('Error fetching emails for cluster:', error)
+    console.error('Failed to fetch emails for cluster')
     return getMockEmails()
   }
 }
 
 // Get analytics data
-export async function getAnalyticsData() {
+export async function getAnalyticsData(): Promise<AnalyticsData> {
   try {
-    // Check if Supabase is configured
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    const data = await safeFetch<AnalyticsData>('/api/analytics/overview')
+
+    if (!data || data.totalEmails === 0) {
       return getAnalyticsMock()
     }
 
-    // Total emails
-    const { count: totalEmails } = await supabase
-      .from('emails')
-      .select('*', { count: 'exact', head: true })
-
-    // Processed emails
-    const { count: processedEmails } = await supabase
-      .from('emails')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'processed')
-
-    // Total clusters
-    const { count: totalClusters } = await supabase
-      .from('clusters')
-      .select('*', { count: 'exact', head: true })
-
-    // Get errors count
-    const { count: totalErrors } = await supabase
-      .from('email_processing_errors')
-      .select('*', { count: 'exact', head: true })
-
-    // Get cluster email counts
-    const { data: clusterStats } = await supabase
-      .from('clusters')
-      .select('email_count')
-
-    const avgEmailsPerCluster =
-      clusterStats && clusterStats.length > 0
-        ? Math.round(
-            clusterStats.reduce((sum: number, c: any) => sum + (c.email_count || 0), 0) /
-              clusterStats.length
-          )
-        : 0
-
-    const finalData = {
-      totalEmails: totalEmails || 0,
-      processedEmails: processedEmails || 0,
-      totalClusters: totalClusters || 0,
-      totalErrors: totalErrors || 0,
-      avgEmailsPerCluster,
-      successRate: totalEmails ? Math.round(((processedEmails || 0) / totalEmails) * 100) : 0,
-    }
-
-    // Fallback to mock if no data
-    if (finalData.totalEmails === 0) {
-      return getAnalyticsMock()
-    }
-
-    return finalData
+    return data
   } catch (error) {
-    console.error('Error fetching analytics:', error)
+    console.error('Failed to fetch analytics')
     return getAnalyticsMock()
   }
 }
@@ -251,35 +173,15 @@ function extractEmail(sender: string) {
 // Get processing errors with mock fallback
 export async function getProcessingErrors(limit: number = 10) {
   try {
-    // Check if Supabase is configured
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-      return getMockErrors()
-    }
-
-    const { data, error } = await supabase
-      .from('email_processing_errors')
-      .select('*')
-      .order('timestamp', { ascending: false })
-      .limit(limit)
-
-    if (error) {
-      console.warn('Error fetching errors from Supabase:', error.message)
-      return getMockErrors()
-    }
+    const data = await safeFetch<ProcessingError[]>(`/api/analytics/errors?limit=${limit}`)
 
     if (!data || data.length === 0) {
       return getMockErrors()
     }
 
-    return data.map((err: any) => ({
-      id: err.id,
-      message_id: err.message_id,
-      error_type: err.failed_stage || 'Unknown',
-      error_message: err.error_message || 'No details available',
-      created_at: err.timestamp,
-    }))
+    return data
   } catch (error) {
-    console.error('Error fetching processing errors:', error)
+    console.error('Failed to fetch processing errors')
     return getMockErrors()
   }
 }
@@ -287,38 +189,15 @@ export async function getProcessingErrors(limit: number = 10) {
 // Get email status distribution with mock fallback
 export async function getEmailStatusDistribution() {
   try {
-    // Check if Supabase is configured
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-      return getMockEmailStats()
-    }
-
-    const { data, error } = await supabase
-      .from('emails')
-      .select('status')
-
-    if (error) {
-      console.warn('Error fetching email stats from Supabase:', error.message)
-      return getMockEmailStats()
-    }
+    const data = await safeFetch<EmailStatusDistribution[]>('/api/analytics/status-distribution')
 
     if (!data || data.length === 0) {
       return getMockEmailStats()
     }
 
-    const statusMap = new Map<string, number>()
-    data.forEach((email: any) => {
-      const status = email.status || 'unknown'
-      statusMap.set(status, (statusMap.get(status) || 0) + 1)
-    })
-
-    const stats = Array.from(statusMap, ([status, count]) => ({
-      status,
-      count,
-    })).sort((a, b) => b.count - a.count)
-
-    return stats.length > 0 ? stats : getMockEmailStats()
+    return data
   } catch (error) {
-    console.error('Error fetching email status distribution:', error)
+    console.error('Failed to fetch email status distribution')
     return getMockEmailStats()
   }
 }
