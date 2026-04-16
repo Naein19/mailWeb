@@ -1,5 +1,7 @@
 import type { Cluster, Email } from '@/lib/types'
 
+const ENABLE_MOCK_BLEND = process.env.NEXT_PUBLIC_ENABLE_MOCK_DATA === 'true'
+
 // Mock data for fallback
 const MOCK_CLUSTERS = [
   {
@@ -39,30 +41,137 @@ const MOCK_CLUSTERS = [
   },
 ]
 
-const MOCK_EMAILS = [
+// Cluster-specific mock emails for different clusters
+const MOCK_EMAILS_BY_CLUSTER: Record<string, any[]> = {
+  'tech-001': [
+    {
+      message_id: 'mock-tech-1',
+      sender: 'John Smith <john@example.com>',
+      subject: '[MOCK] Unable to login to account',
+      body: 'I am unable to access my account. The login page keeps showing an error.',
+      status: 'processed',
+      created_at: new Date(Date.now() - 1000 * 60 * 25).toISOString(),
+    },
+    {
+      message_id: 'mock-tech-2',
+      sender: 'Sarah Johnson <sarah@example.com>',
+      subject: '[MOCK] Password reset not working',
+      body: 'I requested a password reset but never received the email.',
+      status: 'processed',
+      created_at: new Date(Date.now() - 1000 * 60 * 40).toISOString(),
+    },
+  ],
+  'supp-001': [
+    {
+      message_id: 'mock-supp-1',
+      sender: 'Alice Brown <alice@example.com>',
+      subject: '[MOCK] Email delivery failed',
+      body: 'My emails are bouncing back with undeliverable error.',
+      status: 'processed',
+      created_at: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
+    },
+    {
+      message_id: 'mock-supp-2',
+      sender: 'Bob Wilson <bob@example.com>',
+      subject: '[MOCK] Bounce notification received',
+      body: 'Why am I getting bounce notifications for valid emails?',
+      status: 'processed',
+      created_at: new Date(Date.now() - 1000 * 60 * 35).toISOString(),
+    },
+  ],
+  'feat-001': [
+    {
+      message_id: 'mock-feat-1',
+      sender: 'Carol White <carol@example.com>',
+      subject: '[MOCK] Feature request: Export to PDF',
+      body: 'It would be great if we could export reports to PDF format.',
+      status: 'processed',
+      created_at: new Date(Date.now() - 1000 * 60 * 10).toISOString(),
+    },
+  ],
+  'bill-001': [
+    {
+      message_id: 'mock-bill-1',
+      sender: 'David Lee <david@example.com>',
+      subject: '[MOCK] Invoice question for last month',
+      body: 'I have a question about the charges on my invoice.',
+      status: 'processed',
+      created_at: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
+    },
+  ],
+  'cluster-001': [
+    {
+      message_id: 'msg-1-1',
+      sender: 'John Smith <john@example.com>',
+      subject: 'Unable to login to account',
+      body: 'I am unable to access my account. The login page keeps showing an error.',
+      status: 'processed',
+      created_at: new Date(Date.now() - 1000 * 60 * 25).toISOString(),
+    },
+    {
+      message_id: 'msg-1-2',
+      sender: 'Sarah Johnson <sarah@example.com>',
+      subject: 'Password reset not working',
+      body: 'I requested a password reset but never received the email.',
+      status: 'processed',
+      created_at: new Date(Date.now() - 1000 * 60 * 40).toISOString(),
+    },
+    {
+      message_id: 'msg-1-3',
+      sender: 'Mike Chen <mike@example.com>',
+      subject: 'Two-factor authentication error',
+      body: 'The 2FA code seems to be expired when I try to use it.',
+      status: 'processed',
+      created_at: new Date(Date.now() - 1000 * 60 * 50).toISOString(),
+    },
+  ],
+  'cluster-002': [
+    {
+      message_id: 'msg-2-1',
+      sender: 'Alice Brown <alice@example.com>',
+      subject: 'Email delivery failed',
+      body: 'My emails are bouncing back with undeliverable error.',
+      status: 'processed',
+      created_at: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
+    },
+    {
+      message_id: 'msg-2-2',
+      sender: 'Bob Wilson <bob@example.com>',
+      subject: 'Bounce notification received',
+      body: 'Why am I getting bounce notifications for valid emails?',
+      status: 'processed',
+      created_at: new Date(Date.now() - 1000 * 60 * 35).toISOString(),
+    },
+  ],
+  'cluster-003': [
+    {
+      message_id: 'msg-3-1',
+      sender: 'Carol White <carol@example.com>',
+      subject: 'Verification email not received',
+      body: 'I completed registration but did not receive the verification email.',
+      status: 'processed',
+      created_at: new Date(Date.now() - 1000 * 60 * 10).toISOString(),
+    },
+    {
+      message_id: 'msg-3-2',
+      sender: 'David Lee <david@example.com>',
+      subject: 'Account activation link expired',
+      body: 'The activation link in my email has expired.',
+      status: 'processed',
+      created_at: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
+    },
+  ],
+}
+
+// Fallback for unmapped clusters
+const DEFAULT_MOCK_EMAILS = [
   {
-    message_id: 'msg-1',
-    sender: 'John Smith <john@example.com>',
-    subject: 'Unable to login to account',
-    body: 'I am unable to access my account. The login page keeps showing an error.',
+    message_id: 'msg-default-1',
+    sender: 'Support <support@example.com>',
+    subject: 'Sample email from this cluster',
+    body: 'This is a sample email to demonstrate the cluster functionality.',
     status: 'processed',
-    created_at: new Date(Date.now() - 1000 * 60 * 25).toISOString(),
-  },
-  {
-    message_id: 'msg-2',
-    sender: 'Sarah Johnson <sarah@example.com>',
-    subject: 'Password reset not working',
-    body: 'I requested a password reset but never received the email.',
-    status: 'processed',
-    created_at: new Date(Date.now() - 1000 * 60 * 40).toISOString(),
-  },
-  {
-    message_id: 'msg-3',
-    sender: 'Mike Chen <mike@example.com>',
-    subject: 'Two-factor authentication error',
-    body: 'The 2FA code seems to be expired when I try to use it.',
-    status: 'processed',
-    created_at: new Date(Date.now() - 1000 * 60 * 50).toISOString(),
+    created_at: new Date(Date.now() - 1000 * 60 * 20).toISOString(),
   },
 ]
 
@@ -108,16 +217,27 @@ async function safeFetch<T>(url: string): Promise<T | null> {
   }
 }
 
+function blendById<T>(realItems: T[], mockItems: T[], getId: (item: T) => string): T[] {
+  if (!ENABLE_MOCK_BLEND) {
+    return realItems
+  }
+
+  const realIds = new Set(realItems.map(getId))
+  const extraMock = mockItems.filter((item) => !realIds.has(getId(item)))
+  return [...realItems, ...extraMock]
+}
+
 // Get all clusters with email data
 export async function getClusters(): Promise<Cluster[]> {
   try {
     const data = await safeFetch<Cluster[]>('/api/clusters')
+    const mockClusters = getMockClusters()
 
     if (!data || data.length === 0) {
-      return getMockClusters()
+      return mockClusters
     }
 
-    return data
+    return blendById(data, mockClusters, (cluster) => cluster.id)
   } catch (error) {
     console.error('Failed to fetch clusters')
     return getMockClusters()
@@ -128,15 +248,17 @@ export async function getClusters(): Promise<Cluster[]> {
 export async function getEmailsForCluster(clusterId: string): Promise<Email[]> {
   try {
     const data = await safeFetch<Email[]>(`/api/clusters/${encodeURIComponent(clusterId)}/emails`)
+    const mockEmails = getMockEmailsForCluster(clusterId)
 
     if (!data || data.length === 0) {
-      return getMockEmails()
+      return mockEmails
     }
 
-    return data
+    const normalizedReal = data.map((email) => ({ ...email, cluster_id: clusterId }))
+    return blendById(normalizedReal, mockEmails, (email) => email.id)
   } catch (error) {
     console.error('Failed to fetch emails for cluster')
-    return getMockEmails()
+    return getMockEmailsForCluster(clusterId)
   }
 }
 
@@ -174,15 +296,16 @@ function extractEmail(sender: string) {
 export async function getProcessingErrors(limit: number = 10) {
   try {
     const data = await safeFetch<ProcessingError[]>(`/api/analytics/errors?limit=${limit}`)
+    const mockErrors = getMockErrors(limit)
 
     if (!data || data.length === 0) {
-      return getMockErrors()
+      return mockErrors
     }
 
-    return data
+    return blendById(data, mockErrors, (errorItem) => errorItem.id).slice(0, limit)
   } catch (error) {
     console.error('Failed to fetch processing errors')
-    return getMockErrors()
+    return getMockErrors(limit)
   }
 }
 
@@ -190,12 +313,23 @@ export async function getProcessingErrors(limit: number = 10) {
 export async function getEmailStatusDistribution() {
   try {
     const data = await safeFetch<EmailStatusDistribution[]>('/api/analytics/status-distribution')
+    const mockStats = getMockEmailStats()
 
     if (!data || data.length === 0) {
-      return getMockEmailStats()
+      return mockStats
     }
 
-    return data
+    if (!ENABLE_MOCK_BLEND) {
+      return data
+    }
+
+    const totals = new Map<string, number>()
+    data.forEach((item) => totals.set(item.status, (totals.get(item.status) || 0) + item.count))
+    mockStats.forEach((item) => totals.set(item.status, (totals.get(item.status) || 0) + item.count))
+
+    return Array.from(totals, ([status, count]) => ({ status, count })).sort(
+      (a, b) => b.count - a.count
+    )
   } catch (error) {
     console.error('Failed to fetch email status distribution')
     return getMockEmailStats()
@@ -203,8 +337,8 @@ export async function getEmailStatusDistribution() {
 }
 
 // Mock data generators
-function getMockErrors() {
-  return [
+function getMockErrors(limit: number = 10) {
+  const mockErrors = [
     {
       id: 'err-1',
       message_id: 'msg-001',
@@ -227,6 +361,8 @@ function getMockErrors() {
       created_at: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
     },
   ]
+
+  return mockErrors.slice(0, limit)
 }
 
 function getMockEmailStats() {
@@ -250,10 +386,14 @@ function getMockClusters() {
   }))
 }
 
-function getMockEmails() {
-  return MOCK_EMAILS.map((email: any) => ({
+function getMockEmailsForCluster(clusterId: string) {
+  // Try to get cluster-specific mock emails
+  const clusterMockEmails = MOCK_EMAILS_BY_CLUSTER[clusterId]
+  const emailsToUse = clusterMockEmails || DEFAULT_MOCK_EMAILS
+
+  return emailsToUse.map((email: any) => ({
     id: email.message_id,
-    cluster_id: 'cluster-1',
+    cluster_id: clusterId,
     sender: email.sender,
     sender_email: extractEmail(email.sender),
     subject: email.subject,
@@ -287,6 +427,6 @@ export const mockDataService = {
   },
 
   async getEmailsForCluster(_clusterId: string) {
-    return getMockEmails()
+    return getMockEmailsForCluster(_clusterId)
   },
 }

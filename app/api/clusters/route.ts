@@ -11,11 +11,24 @@ export async function GET() {
   try {
     const supabase = getServerSupabaseClient()
 
+    // Get all clusters that have at least one email in email_clusters junction
+    const { data: clustersData, error: clustersError } = await supabase
+      .from('email_clusters')
+      .select('cluster_id')
+
+    if (clustersError) {
+      return NextResponse.json({ error: 'Failed to fetch clusters' }, { status: 500 })
+    }
+
+    // Extract unique cluster IDs
+    const clusterIds = Array.from(new Set((clustersData || []).map((item: any) => item.cluster_id)))
+
+    // Fetch cluster details from clusters table - only for IDs that have emails
     const { data, error } = await supabase
       .from('clusters')
       .select('cluster_id,summary,email_count,updated_at,created_at')
+      .in('cluster_id', clusterIds)
       .order('updated_at', { ascending: false })
-      .limit(50)
 
     if (error) {
       return NextResponse.json({ error: 'Failed to fetch clusters' }, { status: 500 })

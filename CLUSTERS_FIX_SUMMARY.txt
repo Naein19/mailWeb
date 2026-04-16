@@ -1,0 +1,202 @@
+================================================================================
+CLUSTERS NOT SHOWING IN WEB - COMPLETE FIX GUIDE
+================================================================================
+
+PROBLEM:
+========
+You have rows in Supabase "clusters" table, but they don't show in the web UI.
+
+ROOT CAUSE:
+===========
+✅ Database is connected and working
+✅ API endpoint exists and responds
+❌ Tables either don't exist OR RLS policies block access
+❌ Or data hasn't been inserted yet
+
+QUICK SOLUTION (Choose One):
+============================
+
+OPTION A: Use Supabase Web UI (Easiest)
+---------------------------------------
+1. Go to: https://app.supabase.com
+2. Login → Select your project
+3. Click "SQL Editor" → "New Query"
+4. Copy ENTIRE SQL from: SETUP_INSTRUCTIONS.md (STEP 3)
+5. Paste into SQL Editor
+6. Click "Run" button (or Ctrl+Enter)
+7. Wait for green ✅ checkmark
+8. Go to Table Editor → verify clusters table has 10 rows
+9. Run: npm run dev
+10. Visit: http://localhost:3000
+11. ✅ Clusters should appear in left panel!
+
+OPTION B: Use Node.js Script
+-----------------------------
+Would run: node insert-mock-data.js
+BUT currently blocked by RLS policies
+RECOMMENDED: Use Option A first, then this can work
+
+
+FILES CREATED FOR YOU:
+======================
+
+1. DATABASE_SETUP.md
+   - Complete SQL commands for all scenarios
+   - Part 1: Create tables
+   - Part 2: Insert mock data
+   - Part 3: Step-by-step instructions
+   - Part 4: Verification steps
+   - Part 5: Troubleshooting
+
+2. SETUP_INSTRUCTIONS.md
+   - Step-by-step visual guide
+   - Screenshots/descriptions of what to do
+   - Complete copy-paste SQL
+   - Detailed troubleshooting section
+
+3. CLUSTERS_NOT_SHOWING_FIX.md
+   - Two complete options
+   - RLS policy explanations
+   - Detailed debugging steps
+
+4. QUICK_START_CLUSTERS.md
+   - 5-minute quick start
+   - Success indicators
+   - Common issues
+
+5. insert-mock-data.js
+   - Node.js script to insert data programmatically
+   - Can use after RLS is properly configured
+
+6. test-api.sh
+   - Bash script to test API endpoints
+   - Check if server is responding with data
+
+
+WHAT THE CODE DOES:
+===================
+
+The system architecture:
+├── Next.js App (your web interface)
+├── API Routes (/api/clusters, /api/analytics/*, etc.)
+├── Supabase Server Client (server-side only, secure)
+└── Supabase Database (PostgreSQL with tables)
+
+Data Flow:
+1. Browser calls: GET /api/clusters
+2. Server receives request
+3. Server calls: supabase.from('clusters').select(...)
+4. Database returns: cluster rows
+5. Server transforms data → JSON
+6. Browser receives: JSON with cluster data
+7. Frontend renders: Cluster cards in left panel
+
+
+TROUBLESHOOTING TREE:
+====================
+
+Is web showing clusters?
+├─ YES → You're done! 🎉
+└─ NO → Check these:
+   ├─ API returns data?
+   │  ├─ YES: RLS policy issue → Run DISABLE RLS SQL
+   │  └─ NO: Check database
+   │     ├─ Data in Supabase Table Editor?
+   │     │  ├─ YES: Re-run CREATE TABLE & INSERT SQL
+   │     │  └─ NO: Definitely need to insert data
+   │     └─ Run SQL from SETUP_INSTRUCTIONS.md
+   └─ Did you insert mock data?
+      ├─ YES: Check API with: curl http://localhost:3000/api/clusters
+      └─ NO: Follow SETUP_INSTRUCTIONS.md
+
+
+VERIFICATION CHECKLIST:
+=======================
+
+Before troubleshooting, verify:
+☐ Supabase project is active (https://app.supabase.co)
+☐ Database has data (Table Editor → clusters → see rows)
+☐ API responds (curl http://localhost:3000/api/clusters)
+☐ Dev server running (npm run dev)
+☐ Browser not cached (Ctrl+Shift+R refresh)
+☐ .env.local has correct Supabase URL and key
+
+
+ENVIRONMENT SETUP:
+==================
+
+Your .env.local should have:
+✅ SUPABASE_URL=https://sgqhvzqwyeijztchychx.supabase.co
+✅ SUPABASE_ANON_KEY=eyJ... (long token)
+✅ NEXT_PUBLIC_SUPABASE_URL=... (same URL)
+✅ NEXT_PUBLIC_SUPABASE_ANON_KEY=... (same key)
+✅ NEXT_PUBLIC_ENABLE_MOCK_DATA=true
+
+
+GETTING STARTED NOW:
+====================
+
+1. Read: SETUP_INSTRUCTIONS.md (5 min read)
+2. Execute: The SQL from Step 3 (copy-paste, takes 2 min)
+3. Verify: Check Supabase Table Editor for data
+4. Run: npm run dev
+5. View: http://localhost:3000
+6. Enjoy: See your clusters! 🎉
+
+
+DATABASE SCHEMA:
+================
+
+Tables created/expected:
+1. clusters
+   - cluster_id (TEXT, PRIMARY KEY)
+   - summary (TEXT)
+   - email_count (INTEGER)
+   - created_at, updated_at (TIMESTAMPTZ)
+
+2. emails
+   - message_id (TEXT, PRIMARY KEY)
+   - sender, sender_email (TEXT)
+   - subject, body, body_html (TEXT)
+   - status, is_read, is_deleted (status/BOOLEAN)
+   - created_at, updated_at (TIMESTAMPTZ)
+
+3. email_clusters (junction table)
+   - id (BIGSERIAL, PRIMARY KEY)
+   - cluster_id (TEXT, FOREIGN KEY)
+   - message_id (TEXT, FOREIGN KEY)
+   - UNIQUE(cluster_id, message_id)
+
+4. email_ingestion_logs
+   - id, message_id, source, status, details
+   - created_at
+
+5. email_processing_errors
+   - id, message_id, error_message, failed_stage, timestamp
+
+
+QUESTIONS?
+==========
+
+Check these files first:
+1. DATABASE_SETUP.md → Part 5: Troubleshooting
+2. CLUSTERS_NOT_SHOWING_FIX.md → Detailed debugging
+3. QUICK_START_CLUSTERS.md → Common issues
+
+Most common solution: Re-run the SQL from SETUP_INSTRUCTIONS.md
+
+
+SUMMARY:
+========
+
+Your web app is working correctly. It just needs data in the database.
+✅ Follow SETUP_INSTRUCTIONS.md step-by-step
+✅ Copy and run the SQL
+✅ Verify data appears in Supabase
+✅ Visit http://localhost:3000
+✅ Done!
+
+Estimated time: 5-10 minutes
+
+Good luck! 🚀
+================================================================================

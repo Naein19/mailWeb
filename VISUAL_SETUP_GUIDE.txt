@@ -1,0 +1,289 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║                    CLUSTERS NOT SHOWING - VISUAL GUIDE                     ║
+║                                                                            ║
+║                         FIX IT IN 5 STEPS (10 MIN)                         ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+
+STEP 1: OPEN SUPABASE
+═════════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         Browser Window                                  │
+│  ┌────────────────────────────────────────────────────────────────────┐ │
+│  │ https://app.supabase.com                                     [≡]  │ │
+│  ├────────────────────────────────────────────────────────────────────┤ │
+│  │                                                                    │ │
+│  │   📦 My Project (sgqhvzqwyeijztchychx)                           │ │
+│  │                                                                    │ │
+│  │   ✓ Connected                                                     │ │
+│  │                                                                    │ │
+│  │   [Proceed to SQL Editor →]                                      │ │
+│  │                                                                    │ │
+│  └────────────────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────────────┘
+
+WHAT TO DO:
+1. Go to: https://app.supabase.com
+2. Login with your account
+3. Select your project
+
+
+STEP 2: OPEN SQL EDITOR
+═════════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                      Supabase Dashboard                                 │
+│                                                                         │
+│  ┌─ SIDEBAR ─────────────────┐   ┌─ MAIN AREA ─────────────────────┐ │
+│  │                            │   │                                 │ │
+│  │  Dashboard                 │   │  Project Settings              │ │
+│  │  ▼ Database                │   │  - General                     │ │
+│  │    Table Editor            │   │  - API Docs                    │ │
+│  │  → SQL Editor ★ CLICK THIS │   │                                 │ │
+│  │    Authentication          │   │  ┌─────────────────────────┐   │ │
+│  │    Storage                 │   │  │ [New Query] [+ New]     │   │ │
+│  │    Realtime                │   │  ├─────────────────────────┤   │ │
+│  │    Functions               │   │  │                         │   │ │
+│  │    ...                     │   │  │ (sql editor area)       │   │ │
+│  │                            │   │  │                         │   │ │
+│  └────────────────────────────┘   └─────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────────────┘
+
+WHAT TO DO:
+1. Click "SQL Editor" in left sidebar
+2. Click "New Query" button
+3. Ready for Step 3!
+
+
+STEP 3: PASTE SQL CODE
+═════════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                      SQL Editor Window                                  │
+│                                                                         │
+│  ┌─ MY QUERIES ────────────┐   ┌─ SQL EDITOR ───────────────────────┐ │
+│  │                          │   │                                   │ │
+│  │  ✓ untitled query        │   │ -- Drop tables if exist           │ │
+│  │                          │   │ DROP TABLE IF EXISTS ...;         │ │
+│  │  [+ New Query]           │   │                                   │ │
+│  │                          │   │ -- Create clusters table          │ │
+│  │                          │   │ CREATE TABLE clusters (           │ │
+│  │                          │   │   cluster_id TEXT PRIMARY KEY,    │ │
+│  │                          │   │   summary TEXT NOT NULL,          │ │
+│  │                          │   │   email_count INTEGER DEFAULT 0,  │ │
+│  │                          │   │   created_at TIMESTAMPTZ,         │ │
+│  │                          │   │   updated_at TIMESTAMPTZ          │ │
+│  │                          │   │ );                                │ │
+│  │                          │   │                                   │ │
+│  │                          │   │ -- Enable RLS                     │ │
+│  │                          │   │ ALTER TABLE clusters              │ │
+│  │                          │   │   ENABLE ROW LEVEL SECURITY;      │ │
+│  │                          │   │                                   │ │
+│  │                          │   │ CREATE POLICY "Enable read..."    │ │
+│  │                          │   │   ON clusters FOR SELECT          │ │
+│  │                          │   │   USING (true);                   │ │
+│  │                          │   │                                   │ │
+│  │                          │   │ INSERT INTO clusters VALUES...    │ │
+│  │                          │   │                                   │ │
+│  │                          │   │ -- (many more SQL lines...)       │ │
+│  │                          │   │                                   │ │
+│  │                          │   │ -- SCROLL DOWN TO SEE MORE        │ │
+│  │                          │   │                                   │ │
+│  └────────────────────────┘   └─────────────────────────────────────┘ │
+│                                                                        │ │
+│  ┌────────────────────────────────────────────────────────────────────┐ │
+│  │ [🔍 Format] [Ctrl+Enter to Run] ────────► [RUN ▶]  [Stop] [Clear] │ │
+│  └────────────────────────────────────────────────────────────────────┘ │
+│                                                                        │ │
+└─────────────────────────────────────────────────────────────────────────┘
+
+WHAT TO DO:
+1. Go to: SETUP_INSTRUCTIONS.md (line "STEP 3: Copy the Complete SQL")
+2. Copy the entire SQL code block
+3. Paste into this SQL editor area (Ctrl+V)
+4. Make sure it's all there (can scroll down to check)
+
+
+STEP 4: RUN THE SQL
+═════════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                      After Pasting SQL                                  │
+│                                                                         │
+│  ┌─────────────────────────────────────────────────────────────────────┐ │
+│  │ [Ctrl+Enter to Run] ─────────────► [RUN ▶]  [Stop] [Clear]        │ │
+│  └─────────────────────────────────────────────────────────────────────┘ │
+│                                                                         │ │
+│  Result Area:                                                           │ │
+│  ┌─────────────────────────────────────────────────────────────────────┐ │
+│  │ ✅ SUCCESS: Rows affected: 50                                      │ │
+│  │                                                                     │ │
+│  │ Execution time: 2.5 seconds                                        │ │
+│  │                                                                     │ │
+│  │ Query 1 of 1                                                        │ │
+│  └─────────────────────────────────────────────────────────────────────┘ │
+│                                                                         │ │
+└─────────────────────────────────────────────────────────────────────────┘
+
+WHAT TO DO:
+1. Click the green [RUN ▶] button (top right)
+   OR
+   Press Ctrl+Enter
+2. Wait 5-10 seconds for results
+3. You should see: ✅ SUCCESS message
+4. If error: See troubleshooting section
+
+
+STEP 5A: VERIFY DATA IN SUPABASE
+═════════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                      Supabase Dashboard                                 │
+│                                                                         │
+│  ┌─ SIDEBAR ─────────────────┐   ┌─ MAIN AREA ─────────────────────┐ │
+│  │                            │   │  clusters Table (10 rows)       │ │
+│  │  Dashboard                 │   │                                 │ │
+│  │  ▼ Database                │   │  cluster_id  │ summary │ email  │ │
+│  │  → Table Editor ★ CLICK    │   │  ─────────────────────────────  │ │
+│  │    SQL Editor              │   │  cluster-001 │ Login ... │ 28   │ │
+│  │    Authentication          │   │  cluster-002 │ Email d...│ 15   │ │
+│  │    Storage                 │   │  cluster-003 │ Account..│ 42   │ │
+│  │    Realtime                │   │  cluster-004 │ Payment..│ 12   │ │
+│  │    Functions               │   │  cluster-005 │ Support..│ 38   │ │
+│  │                            │   │  cluster-006 │ API Int..│ 85   │ │
+│  │                            │   │  cluster-007 │ Subscri..│ 40   │ │
+│  │                            │   │  cluster-008 │ Account..│ 60   │ │
+│  │                            │   │  cluster-009 │ General..│ 200  │ │
+│  │                            │   │  cluster-010 │ Feature..│ 45   │ │
+│  │                            │   │  ─────────────────────────────  │ │
+│  │                            │   │  Showing 10 of 10 rows           │ │
+│  │                            │   │                                 │ │
+│  └────────────────────────────┘   └─────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────────────┘
+
+WHAT TO DO:
+1. Click "Table Editor" in left sidebar
+2. Look for and click "clusters" table
+3. You should see 10 rows of cluster data
+4. Great! Now move to Step 6
+
+
+STEP 5B: RUN YOUR WEB APP
+═════════════════════════════════════════════════════════════════════════════
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│                          Terminal Window                                   │
+│                                                                            │
+│  $ cd /home/naveen/Documents/zzxzz                                        │
+│  $ npm run dev                                                             │
+│                                                                            │
+│  ▲ Next.js 15.5.15                                                         │
+│  - Environments: .env.local, .env                                          │
+│                                                                            │
+│  ▲ Compiled successfully in 1.2s                                           │
+│                                                                            │
+│  ▲ ready - started server on 0.0.0.0:3000, url: http://localhost:3000     │
+│  ready - compiled /app/page (client and server)                            │
+│  GET /api/clusters 200 in 45ms                                             │
+│  GET /api/clusters 200 in 32ms                                             │
+│                                                                            │
+│  ✨ Compiled successfully!                                                │
+│                                                                            │
+└────────────────────────────────────────────────────────────────────────────┘
+
+WHAT TO DO:
+1. Open a terminal/command prompt
+2. Go to: cd /home/naveen/Documents/zzxzz
+3. Run: npm run dev
+4. Wait for "ready - started server" message
+5. DON'T close this terminal (leave it running)
+
+
+STEP 6: OPEN YOUR WEB APP
+═════════════════════════════════════════════════════════════════════════════
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│                     Browser Window                                       │
+│                                                                          │
+│ Address Bar: http://localhost:3000                                       │
+│                                                                          │
+│ ┌───────────────────────────────────────────────────────────────────────┐│
+│ │ 📨 Email Clustering Dashboard                    [🏠][📊][⚙️][👤]  ││
+│ ├──────────────────────────────────────┬──────────────────────────────┤│
+│ │  Clusters (10)        📌  🔄  ⚡   │                              ││
+│ │  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ │                              ││
+│ │  ✓ cluster-001: Login aut... (28)    │  cluster-001 Details       ││
+│ │  ✓ cluster-002: Email del... (15)    │  ━━━━━━━━━━━━━━━━━━━━     ││
+│ │  ✓ cluster-003: Account re... (42)   │  Login authentication      ││
+│ │  ✓ cluster-004: Payment an... (12)   │  issues and password resets││
+│ │  ✓ cluster-005: Support ti... (38)   │                           ││
+│ │  ✓ cluster-006: API Integr... (85)   │  📧 Emails in Cluster: 28  ││
+│ │  ✓ cluster-007: Subscripti... (40)   │                           ││
+│ │  ✓ cluster-008: Account Se... (60)   │  John Smith                ││
+│ │  ✓ cluster-009: General Cu... (200)  │  john@example.com          ││
+│ │  ✓ cluster-010: New Featu... (45)    │                           ││
+│ │                                        │  Unable to login to account││
+│ │                                        │                           ││
+│ │                                        │  [View Full Email ▼]      ││
+│ │                                        │                           ││
+│ └────────────────────────────────────────┴──────────────────────────────┘│
+└──────────────────────────────────────────────────────────────────────────┘
+
+SUCCESS! 🎉
+
+You should see:
+✅ 10 cluster items in the left panel
+✅ First cluster selected (highlighted)
+✅ Cluster details on the right
+✅ Emails listed in the cluster
+
+
+CONGRATULATIONS! 🚀
+═════════════════════════════════════════════════════════════════════════════
+
+Your web app is now showing real Supabase data!
+
+What's working:
+✅ Clusters displayed in left panel
+✅ Click cluster to see its emails
+✅ Analytics page shows stats
+✅ Settings page available
+✅ All data from Supabase database
+
+Next steps:
+• Click clusters to explore emails
+• Click "Analytics" for statistics
+• Click "Settings" for options
+• Try the search/filter features
+
+
+IF IT DIDN'T WORK
+═════════════════════════════════════════════════════════════════════════════
+
+Still seeing empty?
+
+1. Hard refresh browser: Ctrl+Shift+R
+2. Restart dev server: Ctrl+C then npm run dev
+3. Check API: curl http://localhost:3000/api/clusters
+4. Verify Supabase has data (Step 5A)
+5. Check browser console: F12 → Console tab
+
+Need more help? See: CLUSTERS_NOT_SHOWING_FIX.md
+
+
+FILE LOCATIONS TO USE
+═════════════════════════════════════════════════════════════════════════════
+
+These files are in: /home/naveen/Documents/zzxzz/
+
+For SQL to paste:    SETUP_INSTRUCTIONS.md (look for "STEP 3")
+For troubleshooting: CLUSTERS_NOT_SHOWING_FIX.md
+For quick start:     QUICK_START_CLUSTERS.md
+For SQL reference:   DATABASE_SETUP.md
+For debugging:       Run: bash test-api.sh
+
+
+═════════════════════════════════════════════════════════════════════════════
+                         YOU'VE GOT THIS! 💪
+═════════════════════════════════════════════════════════════════════════════

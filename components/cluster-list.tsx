@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { useDashboardStore } from '@/lib/store'
-import { mockDataService } from '@/lib/api'
+import { getEmailsForCluster } from '@/lib/api'
 import { ClusterCard } from './cluster-card'
 import type { Cluster } from '@/lib/types'
 import { Loader2 } from 'lucide-react'
@@ -25,7 +25,7 @@ export function ClusterList({ isLoading }: { isLoading?: boolean }) {
     setLoadingClusterId(cluster.id)
 
     try {
-      const emails = await mockDataService.getEmailsForCluster(cluster.id)
+      const emails = await getEmailsForCluster(cluster.id)
       setEmails(cluster.id, emails)
     } catch (error) {
       console.error('Failed to load emails:', error)
