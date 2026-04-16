@@ -15,17 +15,17 @@ async function validateSchema() {
     console.log('📊 TABLE SIZES')
     console.log('━'.repeat(60))
 
-    const { data: emails, count: emailCount } = await supabase
+    const { count: emailCount } = await supabase
       .from('emails')
       .select('*', { count: 'exact' })
       .limit(1)
 
-    const { data: clusters, count: clusterCount } = await supabase
+    const { count: clusterCount } = await supabase
       .from('clusters')
       .select('*', { count: 'exact' })
       .limit(1)
 
-    const { data: junctions, count: junctionCount } = await supabase
+    const { count: junctionCount } = await supabase
       .from('email_clusters')
       .select('*', { count: 'exact' })
       .limit(1)
@@ -69,13 +69,12 @@ async function validateSchema() {
     console.log(`Unique messages in junctions: ${uniqueMessages.size}`)
 
     // Check for orphaned records
-    const { data: orphanedEmails } = await supabase
+    const { count: orphanedCount } = await supabase
       .from('email_clusters')
-      .select('message_id')
+      .select('message_id', { count: 'exact' })
       .not('message_id', 'in', `(${Array.from(uniqueMessages).map(m => `"${m}"`).join(',')})`)
-      .limit(1)
 
-    console.log(`Orphaned email_clusters entries: ${orphanedEmails?.length || 0}`)
+    console.log(`Orphaned email_clusters entries: ${orphanedCount || 0}`)
     console.log('')
 
     // 4. EMAILS PER CLUSTER
