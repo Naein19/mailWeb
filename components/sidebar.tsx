@@ -1,6 +1,6 @@
 'use client'
 
-import { LayoutDashboard, Mail, BarChart3, Settings, LogOut, ChevronLeft, ChevronRight } from 'lucide-react'
+import { LayoutDashboard, Mail, BarChart3, LogOut, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useRouter, usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { useDashboardStore } from '@/lib/store'
@@ -13,7 +13,6 @@ const navigationItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
   { id: 'clusters', label: 'Clusters', icon: Mail, href: '/' },
   { id: 'analytics', label: 'Analytics', icon: BarChart3, href: '/analytics' },
-  { id: 'settings', label: 'Settings', icon: Settings, href: '/settings' },
 ]
 
 export function Sidebar() {
@@ -57,14 +56,14 @@ export function Sidebar() {
       {/* Toggle Button */}
       <motion.button
         onClick={toggleSidebar}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        className="absolute -right-3 top-8 z-50 p-1 rounded-full bg-blue-500/20 border border-blue-500/30 hover:bg-blue-500/30 transition-colors"
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+        className="absolute -right-3 top-8 z-50 p-1.5 rounded-full bg-gradient-to-r from-blue-500 to-cyan-400 border border-white/20 hover:border-white/40 shadow-lg hover:shadow-xl transition-all duration-200"
       >
         {sidebarOpen ? (
-          <ChevronLeft className="w-4 h-4 text-blue-400" />
+          <ChevronLeft className="w-4 h-4 text-white" />
         ) : (
-          <ChevronRight className="w-4 h-4 text-blue-400" />
+          <ChevronRight className="w-4 h-4 text-white" />
         )}
       </motion.button>
 
@@ -73,8 +72,8 @@ export function Sidebar() {
         {/* Logo */}
         <div className="mb-8">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
-              <Mail className="w-6 h-6 text-white" />
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center flex-shrink-0 font-bold text-white text-lg">
+              C
             </div>
             {sidebarOpen && (
               <motion.h1
@@ -82,9 +81,9 @@ export function Sidebar() {
                 animate={{ opacity: 1, width: 'auto' }}
                 exit={{ opacity: 0, width: 0 }}
                 transition={{ duration: 0.2, delay: 0.1 }}
-                className="font-bold text-lg whitespace-nowrap"
+                className="font-bold text-lg whitespace-nowrap bg-gradient-to-r from-blue-400 to-cyan-300 bg-clip-text text-transparent"
               >
-                EmailCluster
+                Cluex
               </motion.h1>
             )}
           </div>

@@ -1,12 +1,14 @@
 import type { Metadata } from "next"
 import "./globals.css"
 import { AuthProvider } from "@/components/auth-provider"
+import { ToastContainer } from "@/components/toast-container"
+import { ComposerPanel } from "@/components/composer-panel"
 
 export const metadata: Metadata = {
-  title: "Email Clustering Dashboard",
-  description: "AI-powered email clustering and management system",
+  title: "Cluex - Email Clustering Platform",
+  description: "AI-powered email clustering and management for smart teams",
   icons: {
-    icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✉️</text></svg>",
+    icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>C</text></svg>",
   },
 }
 
@@ -36,6 +38,8 @@ export default function RootLayout({
         <AuthProvider>
           {children}
         </AuthProvider>
+        <ToastContainer />
+        <ComposerPanel />
       </body>
     </html>
   )

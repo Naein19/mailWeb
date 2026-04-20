@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import { useDashboardStore } from '@/lib/store'
 import { EmailListItem } from './email-list-item'
+import { showToast } from '@/lib/toast'
 import {
   MoreVertical,
   Archive,
@@ -11,10 +12,18 @@ import {
 } from 'lucide-react'
 
 export function ClusterDetail() {
-  const { getSelectedCluster, getSelectedClusterEmails } = useDashboardStore()
+  const { getSelectedCluster, getSelectedClusterEmails, setComposerOpen } = useDashboardStore()
 
   const cluster = getSelectedCluster()
   const emails = getSelectedClusterEmails()
+
+  const handleReplyAll = () => {
+    if (!cluster) {
+      showToast('No cluster selected', 'error')
+      return
+    }
+    setComposerOpen(true, 'reply_all')
+  }
 
   if (!cluster) {
     return null
@@ -75,18 +84,31 @@ export function ClusterDetail() {
 
           {/* Action Bar */}
           <div className="flex gap-2 pt-2">
-            <button className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors duration-200 text-sm font-medium">
+            <motion.button
+              onClick={handleReplyAll}
+              whileHover={{ y: -2 }}
+              whileTap={{ y: 0 }}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 rounded-lg transition-all duration-200 text-sm font-medium shadow-lg hover:shadow-xl"
+            >
               <CheckCircle2 className="w-4 h-4" />
               Reply All
-            </button>
-            <button className="flex-1 flex items-center justify-center gap-2 px-4 py-2 glass hover:bg-white/10 rounded-lg transition-colors duration-200 text-sm font-medium">
+            </motion.button>
+            <motion.button
+              whileHover={{ y: -2 }}
+              whileTap={{ y: 0 }}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 glass hover:bg-white/10 rounded-lg transition-all duration-200 text-sm font-medium border border-white/10 hover:border-white/20"
+            >
               <Archive className="w-4 h-4" />
               Archive
-            </button>
-            <button className="flex-1 flex items-center justify-center gap-2 px-4 py-2 glass hover:bg-red-500/10 hover:text-red-400 rounded-lg transition-colors duration-200 text-sm font-medium">
+            </motion.button>
+            <motion.button
+              whileHover={{ y: -2 }}
+              whileTap={{ y: 0 }}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 glass hover:bg-red-500/10 hover:text-red-400 rounded-lg transition-all duration-200 text-sm font-medium border border-white/10 hover:border-red-500/30"
+            >
               <Trash2 className="w-4 h-4" />
               Delete
-            </button>
+            </motion.button>
           </div>
         </div>
       </div>

@@ -9,9 +9,20 @@ export function EmailDrawer() {
     isEmailDrawerOpen,
     setEmailDrawerOpen,
     getSelectedEmail,
+    setComposerOpen,
   } = useDashboardStore()
 
   const email = getSelectedEmail()
+
+  const handleReply = () => {
+    if (email?.sender_email) {
+      setComposerOpen(true, 'reply_one', email.sender_email)
+    }
+  }
+
+  const handleForward = () => {
+    setComposerOpen(true, 'forward', '')
+  }
 
   if (!email) return null
 
@@ -120,20 +131,38 @@ export function EmailDrawer() {
 
             {/* Footer Actions */}
             <div className="h-20 border-t border-white/10 px-6 py-4 flex items-center gap-2 bg-white/2">
-              <button className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 transition-colors duration-200 text-sm font-medium">
+              <motion.button
+                onClick={handleReply}
+                whileHover={{ y: -2 }}
+                whileTap={{ y: 0 }}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 transition-all duration-200 text-sm font-medium shadow-lg hover:shadow-xl"
+              >
                 <Reply className="w-4 h-4" />
                 Reply
-              </button>
-              <button className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg glass hover:bg-white/10 transition-colors duration-200 text-sm font-medium">
+              </motion.button>
+              <motion.button
+                onClick={handleForward}
+                whileHover={{ y: -2 }}
+                whileTap={{ y: 0 }}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg glass hover:bg-white/10 transition-all duration-200 text-sm font-medium border border-white/10 hover:border-white/20"
+              >
                 <Forward className="w-4 h-4" />
                 Forward
-              </button>
-              <button className="p-2 hover:bg-white/10 rounded-lg transition-colors duration-200">
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                className="p-2 hover:bg-white/10 rounded-lg transition-colors duration-200"
+              >
                 <Star className="w-4 h-4 text-gray-400 hover:text-yellow-400" />
-              </button>
-              <button className="p-2 hover:bg-white/10 rounded-lg transition-colors duration-200">
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                className="p-2 hover:bg-white/10 rounded-lg transition-colors duration-200"
+              >
                 <Tag className="w-4 h-4 text-gray-400 hover:text-white" />
-              </button>
+              </motion.button>
             </div>
           </motion.div>
         </>

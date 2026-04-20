@@ -17,9 +17,9 @@ export function EmailListItem({ email }: EmailListItemProps) {
   }
 
   return (
-    <button
+    <div
       onClick={handleClick}
-      className="w-full p-4 hover:bg-white/5 transition-colors duration-200 text-left group"
+      className="w-full p-4 hover:bg-white/5 transition-colors duration-200 text-left group cursor-pointer"
     >
       <div className="flex items-start gap-3">
         {/* Unread indicator */}
@@ -92,6 +92,6 @@ export function EmailListItem({ email }: EmailListItemProps) {
           </button>
         </div>
       </div>
-    </button>
+    </div>
   )
 }

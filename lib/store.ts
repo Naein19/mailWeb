@@ -7,6 +7,9 @@ interface DashboardStore {
   selectedEmailId: string | null
   isEmailDrawerOpen: boolean
   sidebarOpen: boolean
+  isComposerOpen: boolean
+  composerType: 'reply_all' | 'reply_one' | 'forward' | null
+  composerRecipient: string | null
   
   // Data State
   clusters: Cluster[]
@@ -19,6 +22,7 @@ interface DashboardStore {
   setSelectedEmailId: (id: string | null) => void
   setEmailDrawerOpen: (open: boolean) => void
   setSidebarOpen: (open: boolean) => void
+  setComposerOpen: (open: boolean, type?: 'reply_all' | 'reply_one' | 'forward', recipient?: string) => void
   setClusters: (clusters: Cluster[]) => void
   setEmails: (clusterId: string, emails: Email[]) => void
   addCluster: (cluster: Cluster) => void
@@ -39,6 +43,9 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
   selectedEmailId: null,
   isEmailDrawerOpen: false,
   sidebarOpen: true,
+  isComposerOpen: false,
+  composerType: null,
+  composerRecipient: null,
   clusters: [],
   emails: {},
   currentUser: null,
@@ -48,6 +55,8 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
   setSelectedEmailId: (id: string | null) => set({ selectedEmailId: id }),
   setEmailDrawerOpen: (open: boolean) => set({ isEmailDrawerOpen: open }),
   setSidebarOpen: (open: boolean) => set({ sidebarOpen: open }),
+  setComposerOpen: (open: boolean, type?: 'reply_all' | 'reply_one' | 'forward', recipient?: string) =>
+    set({ isComposerOpen: open, composerType: type || null, composerRecipient: recipient || null }),
   
   setClusters: (clusters: Cluster[]) => set({ clusters }),
   setEmails: (clusterId: string, emails: Email[]) =>
