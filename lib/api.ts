@@ -208,11 +208,14 @@ async function safeFetch<T>(url: string): Promise<T | null> {
     })
 
     if (!response.ok) {
+      console.error(`API error at ${url}: status ${response.status}`)
       return null
     }
 
-    return (await response.json()) as T
-  } catch {
+    const data = await response.json()
+    return data as T
+  } catch (error) {
+    console.error(`Fetch error at ${url}:`, error)
     return null
   }
 }
@@ -227,20 +230,20 @@ function blendById<T>(realItems: T[], mockItems: T[], getId: (item: T) => string
   return [...realItems, ...extraMock]
 }
 
-// Get all clusters with email data
+// Get all clusters with real data
 export async function getClusters(): Promise<Cluster[]> {
   try {
     const data = await safeFetch<Cluster[]>('/api/clusters')
-    const mockClusters = getMockClusters()
 
     if (!data || data.length === 0) {
-      return mockClusters
+      console.warn('No clusters returned from API')
+      return []
     }
 
-    return blendById(data, mockClusters, (cluster) => cluster.id)
+    return data
   } catch (error) {
-    console.error('Failed to fetch clusters')
-    return getMockClusters()
+    console.error('Failed to fetch clusters:', error)
+    return []
   }
 }
 
@@ -248,17 +251,16 @@ export async function getClusters(): Promise<Cluster[]> {
 export async function getEmailsForCluster(clusterId: string): Promise<Email[]> {
   try {
     const data = await safeFetch<Email[]>(`/api/clusters/${encodeURIComponent(clusterId)}/emails`)
-    const mockEmails = getMockEmailsForCluster(clusterId)
 
     if (!data || data.length === 0) {
-      return mockEmails
+      console.warn(`No emails found for cluster ${clusterId}`)
+      return []
     }
 
-    const normalizedReal = data.map((email) => ({ ...email, cluster_id: clusterId }))
-    return blendById(normalizedReal, mockEmails, (email) => email.id)
+    return data
   } catch (error) {
-    console.error('Failed to fetch emails for cluster')
-    return getMockEmailsForCluster(clusterId)
+    console.error(`Failed to fetch emails for cluster ${clusterId}:`, error)
+    return []
   }
 }
 

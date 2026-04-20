@@ -4,8 +4,9 @@ import { Settings, Mail, Database, Bell } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useState } from 'react'
 import { Sidebar } from '@/components/sidebar'
+import { ProtectedRoute } from '@/components/protected-route'
 
-export default function SettingsPage() {
+function SettingsContent() {
   const [settings, setSettings] = useState({
     emailNotifications: true,
     errorAlerts: true,
@@ -161,5 +162,13 @@ function SettingToggle({ label, description, checked, onChange }: SettingToggleP
         />
       </button>
     </div>
+  )
+}
+
+export default function SettingsPage() {
+  return (
+    <ProtectedRoute>
+      <SettingsContent />
+    </ProtectedRoute>
   )
 }

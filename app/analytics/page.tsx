@@ -5,6 +5,7 @@ import { TrendingUp, AlertTriangle, Clock, Filter, CheckCircle } from 'lucide-re
 import { getProcessingErrors, getEmailStatusDistribution } from '@/lib/api'
 import { motion } from 'framer-motion'
 import { Sidebar } from '@/components/sidebar'
+import { ProtectedRoute } from '@/components/protected-route'
 
 interface ErrorLog {
   id: string
@@ -19,7 +20,7 @@ interface EmailStats {
   count: number
 }
 
-export default function Analytics() {
+function AnalyticsContent() {
   const [errors, setErrors] = useState<ErrorLog[]>([])
   const [emailStats, setEmailStats] = useState<EmailStats[]>([])
   const [loading, setLoading] = useState(true)
@@ -259,5 +260,13 @@ export default function Analytics() {
       </motion.div>
     </div>
     </div>
+  )
+}
+
+export default function Analytics() {
+  return (
+    <ProtectedRoute>
+      <AnalyticsContent />
+    </ProtectedRoute>
   )
 }

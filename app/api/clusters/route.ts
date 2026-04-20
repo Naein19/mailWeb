@@ -17,7 +17,13 @@ export async function GET() {
       .select('cluster_id')
 
     if (clustersError) {
-      return NextResponse.json({ error: 'Failed to fetch clusters' }, { status: 500 })
+      console.error('Error fetching cluster IDs:', clustersError)
+      return NextResponse.json([], { status: 200 })
+    }
+
+    // If no clusters found, return empty array
+    if (!clustersData || clustersData.length === 0) {
+      return NextResponse.json([], { status: 200 })
     }
 
     // Extract unique cluster IDs
@@ -26,26 +32,33 @@ export async function GET() {
     // Fetch cluster details from clusters table - only for IDs that have emails
     const { data, error } = await supabase
       .from('clusters')
-      .select('cluster_id,summary,email_count,updated_at,created_at')
+      .select('cluster_id, title, summary, email_count, updated_at, created_at')
       .in('cluster_id', clusterIds)
       .order('updated_at', { ascending: false })
 
     if (error) {
-      return NextResponse.json({ error: 'Failed to fetch clusters' }, { status: 500 })
+      console.error('Error fetching cluster details:', error)
+      return NextResponse.json([], { status: 200 })
     }
 
-    const transformed = (data || []).map((cluster: any) => ({
+    // Return empty array if no clusters found
+    if (!data || data.length === 0) {
+      return NextResponse.json([], { status: 200 })
+    }
+
+    const transformed = data.map((cluster: any) => ({
       id: cluster.cluster_id,
-      title: `${(cluster.summary || 'Cluster').slice(0, 40)} – ${cluster.email_count || 0} emails`,
+      title: cluster.title || cluster.summary || 'Untitled Cluster',
       summary: cluster.summary || 'No summary available',
       priority: determinePriority(cluster.email_count || 0),
       email_count: cluster.email_count || 0,
-      updated_at: cluster.updated_at,
-      created_at: cluster.created_at,
+      updated_at: cluster.updated_at || new Date().toISOString(),
+      created_at: cluster.created_at || new Date().toISOString(),
     }))
 
     return NextResponse.json(transformed, { status: 200 })
-  } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  } catch (error) {
+    console.error('Clusters endpoint error:', error)
+    return NextResponse.json([], { status: 200 })
   }
 }

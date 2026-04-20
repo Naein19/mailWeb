@@ -9,8 +9,10 @@ import { TopBar } from '@/components/topbar'
 import { ClusterList } from '@/components/cluster-list'
 import { ClusterDetail } from '@/components/cluster-detail'
 import { EmailDrawer } from '@/components/email-drawer'
+import { ResizablePanel } from '@/components/resizable-panel'
+import { ProtectedRoute } from '@/components/protected-route'
 
-export default function Dashboard() {
+function DashboardContent() {
   const [isLoading, setIsLoading] = useState(true)
   const {
     setClusters,
@@ -52,15 +54,22 @@ export default function Dashboard() {
         <TopBar />
 
         <div className="flex-1 flex gap-4 overflow-hidden">
-          {/* Cluster List Panel */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.3 }}
-            className="w-80 border-r border-white/10 overflow-hidden"
+          {/* Cluster List Panel - Resizable */}
+          <ResizablePanel
+            minWidth={300}
+            maxWidth={600}
+            defaultWidth={320}
+            storageKey="cluster-panel-width"
           >
-            <ClusterList isLoading={isLoading} />
-          </motion.div>
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.3 }}
+              className="h-full border-r border-white/10 overflow-hidden flex flex-col"
+            >
+              <ClusterList isLoading={isLoading} />
+            </motion.div>
+          </ResizablePanel>
 
           {/* Cluster Detail Panel */}
           <motion.div
@@ -85,5 +94,13 @@ export default function Dashboard() {
       {/* Email Drawer */}
       <EmailDrawer />
     </div>
+  )
+}
+
+export default function Dashboard() {
+  return (
+    <ProtectedRoute>
+      <DashboardContent />
+    </ProtectedRoute>
   )
 }

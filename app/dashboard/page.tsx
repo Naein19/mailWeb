@@ -5,6 +5,7 @@ import { BarChart3, Mail, AlertCircle, CheckCircle, TrendingUp } from 'lucide-re
 import { getAnalyticsData } from '@/lib/api'
 import { motion } from 'framer-motion'
 import { Sidebar } from '@/components/sidebar'
+import { ProtectedRoute } from '@/components/protected-route'
 
 interface AnalyticsData {
   totalEmails: number
@@ -15,7 +16,7 @@ interface AnalyticsData {
   successRate: number
 }
 
-export default function Dashboard() {
+function DashboardContent() {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -226,5 +227,13 @@ export default function Dashboard() {
       </motion.div>
     </div>
     </div>
+  )
+}
+
+export default function Dashboard() {
+  return (
+    <ProtectedRoute>
+      <DashboardContent />
+    </ProtectedRoute>
   )
 }
