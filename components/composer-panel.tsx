@@ -6,6 +6,7 @@ import { X, Send, Loader } from 'lucide-react'
 import { useDashboardStore } from '@/lib/store'
 import { sendWebhookReply, extractRecipients } from '@/lib/webhook'
 import { showToast } from '@/lib/toast'
+import { useAuth } from '@/components/auth-provider'
 
 export function ComposerPanel() {
   const [subject, setSubject] = useState('')
@@ -20,7 +21,9 @@ export function ComposerPanel() {
     composerRecipient,
     getSelectedCluster,
     getSelectedClusterEmails,
+    activeAccount,
   } = useDashboardStore()
+  const { user } = useAuth()
 
   const cluster = getSelectedCluster()
   const emails = getSelectedClusterEmails()
@@ -48,7 +51,6 @@ export function ComposerPanel() {
 
       let recipients: string[] = []
 
-      // Determine recipients based on type
       if (composerType === 'reply_all') {
         recipients = extractRecipients(emails)
         if (recipients.length === 0) {
@@ -68,11 +70,11 @@ export function ComposerPanel() {
         return
       }
 
-      // Build complete webhook payload
       const payload = {
         type: composerType,
         cluster_id: cluster?.id || 'unknown',
         cluster_title: cluster?.title || 'Unknown',
+        account_id: activeAccount || user?.email || '',
         subject,
         message,
         reply_body: message,
@@ -89,18 +91,13 @@ export function ComposerPanel() {
         timestamp: new Date().toISOString(),
       }
 
-      console.log(`[Composer] Sending ${composerType} with ${recipients.length} recipient(s)`)
-      console.log(`[Composer] Payload:`, payload)
-
-      // Send via API proxy (not directly to n8n)
       const result = await sendWebhookReply(payload)
 
       if (result.success) {
-        showToast('Message sent successfully! 🎉', 'success')
+        showToast('Message sent successfully!', 'success')
         handleClose()
       } else {
         showToast(result.message || 'Failed to send message', 'error')
-        console.error('[Composer] Send failed:', result.error)
       }
     } catch (error) {
       console.error('[Composer] Error:', error)
@@ -120,117 +117,117 @@ export function ComposerPanel() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={handleClose}
-            className="fixed inset-0 bg-black/40 z-40 backdrop-blur-sm"
+            className="fixed inset-0 bg-background/60 backdrop-blur-[2px] z-[60]"
           />
 
-          {/* Composer Panel */}
+          {/* Composer Panel - Phase 5 */}
           <motion.div
-            initial={{ x: '100%', opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: '100%', opacity: 0 }}
-            transition={{ duration: 0.3, ease: 'easeOut' }}
-            className="fixed right-0 top-0 bottom-0 w-full max-w-md glass z-50 flex flex-col shadow-2xl"
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            className="fixed right-0 top-0 bottom-0 w-full max-w-2xl bg-background border-l border-border z-[70] flex flex-col shadow-2xl"
           >
             {/* Header */}
-            <div className="h-16 border-b border-white/10 flex items-center justify-between px-6">
-              <h2 className="font-semibold text-lg">
-                {composerType === 'reply_all' && 'Reply All'}
-                {composerType === 'reply_one' && 'Reply'}
-                {composerType === 'forward' && 'Forward'}
-              </h2>
-              <motion.button
+            <div className="h-12 flex items-center justify-between px-6 border-b border-border shrink-0">
+              <span className="label-section">New Message</span>
+              <button
                 onClick={handleClose}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-                className="p-2 hover:bg-white/10 rounded-lg transition-colors duration-200"
+                className="p-1.5 rounded hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
               >
-                <X className="w-5 h-5" />
-              </motion.button>
+                <X size={16} />
+              </button>
             </div>
 
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-4">
-            {/* Recipient Info or Input */}
-            {composerRecipient && (composerType === 'reply_all' || composerType === 'reply_one') && (
-              <div className="p-3 rounded-lg bg-white/5 border border-white/10">
-                <p className="text-xs text-gray-500 mb-1">To:</p>
-                <p className="text-sm font-medium">{composerRecipient}</p>
-              </div>
-            )}
-
-            {/* Forward Recipient Input */}
-            {composerType === 'forward' && (
+            {/* Content Area */}
+            <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6 scrollbar-minimal">
+              {/* Context strip */}
               <div>
-                <label className="text-sm font-medium text-gray-300 mb-2 block">
-                  Recipient
-                </label>
-                <input
-                  type="email"
-                  value={forwardRecipient}
-                  onChange={(e) => setForwardRecipient(e.target.value)}
-                  placeholder="Enter recipient email..."
-                  className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm transition-all duration-200"
-                />
-              </div>
-            )}
-
-              {/* Subject Input */}
-              <div>
-                <label className="text-sm font-medium text-gray-300 mb-2 block">
-                  Subject
-                </label>
-                <input
-                  type="text"
-                  value={subject}
-                  onChange={(e) => setSubject(e.target.value)}
-                  placeholder="Email subject..."
-                  className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm transition-all duration-200"
-                />
+                <p className="text-sm font-semibold text-foreground capitalize">
+                  {composerType?.replace('_', ' ')}
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {composerType === 'reply_all'
+                    ? `Replying to ${emails.length} contacts in cluster`
+                    : composerRecipient || 'New message'}
+                </p>
+                {composerType === 'reply_all' && (
+                  <div className="p-3 rounded-lg bg-white/5 border border-white/10 mt-3">
+                    <p className="text-xs text-gray-500 mb-1">To: {extractRecipients(emails).length} recipient(s)</p>
+                    <p className="text-xs text-gray-300 break-all">{extractRecipients(emails).join(', ')}</p>
+                    <p className="text-xs text-gray-600 mt-1.5">
+                      ✓ Each person receives a separate individual email (via n8n Loop)
+                    </p>
+                  </div>
+                )}
               </div>
 
-              {/* Message Textarea */}
-              <div className="flex-1">
-                <label className="text-sm font-medium text-gray-300 mb-2 block">
-                  Message
-                </label>
-                <textarea
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Write your message..."
-                  className="w-full h-64 px-4 py-3 rounded-lg bg-white/5 border border-white/10 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm transition-all duration-200 resize-none"
-                />
+              {/* Form Fields */}
+              <div className="space-y-4">
+                {/* Subject */}
+                <div>
+                  <label className="label-section block mb-1.5">Subject</label>
+                  <input
+                    type="text"
+                    value={subject}
+                    onChange={(e) => setSubject(e.target.value)}
+                    placeholder="Enter subject..."
+                    className="input-base"
+                  />
+                </div>
+
+                {/* Forward recipient */}
+                {composerType === 'forward' && (
+                  <div>
+                    <label className="label-section block mb-1.5">Forward To</label>
+                    <input
+                      type="email"
+                      value={forwardRecipient}
+                      onChange={(e) => setForwardRecipient(e.target.value)}
+                      placeholder="recipient@example.com"
+                      className="input-base"
+                    />
+                  </div>
+                )}
+
+                {/* Message */}
+                <div>
+                  <label className="label-section block mb-1.5">Message</label>
+                  <textarea
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    placeholder="Write your message..."
+                    className="input-base min-h-[320px] resize-none leading-relaxed"
+                  />
+                </div>
               </div>
             </div>
 
-            {/* Footer Actions */}
-            <div className="h-20 border-t border-white/10 px-6 py-4 flex items-center gap-3 bg-white/2">
-              <motion.button
+            {/* Footer */}
+            <div className="px-6 py-4 border-t border-border flex items-center justify-between shrink-0">
+              <button
                 onClick={handleClose}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="flex-1 px-4 py-2 rounded-lg glass hover:bg-white/10 transition-colors duration-200 text-sm font-medium border border-white/10"
+                className="btn-outline"
               >
-                Cancel
-              </motion.button>
-              <motion.button
+                Discard
+              </button>
+              <button
                 onClick={handleSend}
                 disabled={isSending}
-                whileHover={{ y: -2 }}
-                whileTap={{ y: 0 }}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 disabled:from-blue-600/50 disabled:to-cyan-500/50 disabled:cursor-not-allowed transition-all duration-200 text-sm font-medium shadow-lg hover:shadow-xl"
+                className="btn-primary px-6 disabled:opacity-50"
               >
                 {isSending ? (
                   <>
-                    <Loader className="w-4 h-4 animate-spin" />
+                    <Loader size={13} className="animate-spin" />
                     Sending...
                   </>
                 ) : (
                   <>
-                    <Send className="w-4 h-4" />
+                    <Send size={13} />
                     Send
                   </>
                 )}
-              </motion.button>
+              </button>
             </div>
           </motion.div>
         </>

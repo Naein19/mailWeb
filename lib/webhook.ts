@@ -6,6 +6,7 @@ export interface WebhookPayload {
   type?: 'reply_all' | 'reply_one' | 'forward'
   cluster_id: string
   cluster_title: string
+  account_id: string
   subject: string
   message?: string
   reply_body?: string
@@ -43,8 +44,10 @@ export function detectWebhookMode(url: string): 'test' | 'production' {
  * Client-side only execution
  */
 export function getWebhookUrl(): string | null {
-  if (typeof window === 'undefined') return null
+  if (typeof window === 'undefined') return process.env.NEXT_PUBLIC_N8N_REPLY_WEBHOOK || null
   return localStorage.getItem('n8n_webhook_url')
+    || process.env.NEXT_PUBLIC_N8N_REPLY_WEBHOOK
+    || null
 }
 
 /**

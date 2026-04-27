@@ -2,13 +2,14 @@ import type { Metadata } from "next"
 import "./globals.css"
 import { AuthProvider } from "@/components/auth-provider"
 import { ToastContainer } from "@/components/toast-container"
-import { ComposerPanel } from "@/components/composer-panel"
+
+import { ThemeProvider } from "@/components/theme-provider"
 
 export const metadata: Metadata = {
   title: "Cluex - Email Clustering Platform",
   description: "AI-powered email clustering and management for smart teams",
   icons: {
-    icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>C</text></svg>",
+    icon: "/logo.svg",
   },
 }
 
@@ -18,7 +19,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
       <head>
         <link
           rel="preconnect"
@@ -34,12 +35,13 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="dark">
+      <body className="antialiased min-h-screen">
         <AuthProvider>
-          {children}
+          <ThemeProvider>
+            {children}
+          </ThemeProvider>
         </AuthProvider>
         <ToastContainer />
-        <ComposerPanel />
       </body>
     </html>
   )

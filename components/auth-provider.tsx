@@ -1,42 +1,62 @@
 'use client'
 
 import { createContext, useContext, useEffect, useState } from 'react'
-import type { AuthUser } from '@/lib/auth'
-import { onAuthStateChange } from '@/lib/auth'
+import { useDashboardStore } from '@/lib/store'
+import type { User } from '@supabase/supabase-js'
+import {
+  onAuthStateChange,
+  addConnectedAccount,
+  getActiveAccount,
+  setActiveAccountStorage,
+  getConnectedAccounts,
+  type AuthUser,
+} from '@/lib/auth'
 
 interface AuthContextType {
-  user: AuthUser | null
+  user: User | null
   isLoading: boolean
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(null)
+  const currentUser = useDashboardStore((state) => state.currentUser)
+  const setCurrentUser = useDashboardStore((state) => state.setCurrentUser)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    let unsubscribe: (() => void) | undefined
+    const accounts = getConnectedAccounts()
+    useDashboardStore.getState().setConnectedAccounts(accounts)
 
-    try {
-      unsubscribe = onAuthStateChange((currentUser) => {
-        setUser(currentUser)
-        setIsLoading(false)
-      })
-    } catch (error) {
-      console.error('Auth error:', error)
-      setIsLoading(false)
+    const activeAcc = getActiveAccount()
+    if (activeAcc) {
+      useDashboardStore.getState().setActiveAccount(activeAcc)
+    } else if (accounts.length > 0) {
+      useDashboardStore.getState().setActiveAccount(accounts[0])
+      setActiveAccountStorage(accounts[0])
     }
 
-    return () => {
-      if (unsubscribe) {
-        unsubscribe()
+    const unsubscribe = onAuthStateChange((currentUser: AuthUser | null) => {
+      setCurrentUser(currentUser as any)
+
+      if (currentUser?.email) {
+        addConnectedAccount(currentUser.email)
+        const stored = getActiveAccount()
+        if (!stored) setActiveAccountStorage(currentUser.email)
+        const store = useDashboardStore.getState()
+        store.setConnectedAccounts(getConnectedAccounts())
+        const active = getActiveAccount() || currentUser.email
+        if (store.activeAccount !== active) store.setActiveAccount(active)
       }
-    }
-  }, [])
+      
+      setIsLoading(false)
+    })
+
+    return () => unsubscribe()
+  }, [setCurrentUser])
 
   return (
-    <AuthContext.Provider value={{ user, isLoading }}>
+    <AuthContext.Provider value={{ user: currentUser as any, isLoading }}>
       {children}
     </AuthContext.Provider>
   )

@@ -1,11 +1,13 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { TrendingUp, AlertTriangle, Clock, Filter, CheckCircle } from 'lucide-react'
+import { AlertTriangle, CheckCircle } from 'lucide-react'
 import { getProcessingErrors, getEmailStatusDistribution } from '@/lib/api'
 import { motion } from 'framer-motion'
 import { Sidebar } from '@/components/sidebar'
+import { TopBar } from '@/components/topbar'
 import { ProtectedRoute } from '@/components/protected-route'
+import { cn } from '@/lib/utils'
 
 interface ErrorLog {
   id: string
@@ -80,185 +82,114 @@ function AnalyticsContent() {
     fetchData()
   }, [])
 
-  const container = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  }
-
-  const item = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0 },
-  }
-
   if (loading) {
     return (
-      <div className="flex h-screen bg-background">
+      <div className="flex h-screen bg-background overflow-hidden font-sans">
         <Sidebar />
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-gray-400">Loading analytics...</div>
+        <div className="flex-1 flex flex-col min-w-0">
+          <TopBar hideSearch />
+          <div className="flex-1 flex items-center justify-center">
+            <p className="text-sm text-muted-foreground">Loading analytics...</p>
+          </div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="flex h-screen bg-background overflow-hidden">
+    <div className="flex h-screen bg-background overflow-hidden font-sans">
       <Sidebar />
-      <div className="flex-1 flex flex-col">
-      {/* Header */}
-      <div className="border-b border-white/10 glass px-8 py-6 sticky top-0 z-10">
-        <div className="flex items-center gap-3">
-          <TrendingUp className="w-6 h-6 text-purple-500" />
-          <div>
-            <h1 className="text-2xl font-bold">Analytics</h1>
-            <p className="text-gray-400 text-sm">Email processing insights & error tracking</p>
+      <div className="flex-1 flex flex-col min-w-0">
+        <TopBar hideSearch />
+        <div className="flex-1 overflow-y-auto scrollbar-minimal">
+          <div className="max-w-4xl mx-auto px-8 py-10 space-y-10">
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight text-foreground">Analytics</h1>
+              <p className="text-sm text-muted-foreground mt-1">Monitor system performance and processing integrity.</p>
+            </div>
+
+            {/* Top Grid: Status & High-level Stats */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
+              {/* Distribution */}
+              <div className="lg:col-span-4 space-y-8">
+                <div>
+                  <h2 className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mb-6">Status Distribution</h2>
+                  <div className="space-y-6">
+                    {emailStats.map((stat, idx) => (
+                      <div key={idx} className="space-y-2">
+                        <div className="flex justify-between items-center px-0.5">
+                          <span className="text-xs font-semibold text-foreground/80 capitalize">{stat.status}</span>
+                          <span className="text-xs font-bold text-foreground">{stat.count}</span>
+                        </div>
+                        <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${(stat.count / Math.max(...emailStats.map(s => s.count))) * 100}%` }}
+                            className={cn(
+                              "h-full rounded-full transition-all duration-500",
+                              stat.status === 'processed' ? "bg-emerald-500" : 
+                              stat.status === 'failed' ? "bg-destructive" : "bg-primary"
+                            )}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Recent Errors - Phase 4.3 (Grouping) */}
+              <div className="lg:col-span-8 space-y-8">
+                <div>
+                  <h2 className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mb-6">System Errors</h2>
+                  <div className="space-y-1">
+                    {errors.length > 0 ? (
+                      errors.map((error) => (
+                        <div key={error.id} className="group py-4 flex items-start gap-4 hover:bg-secondary/20 px-4 -mx-4 rounded-lg transition-all">
+                          <div className={cn(
+                            "mt-1 p-1 rounded transition-colors group-hover:bg-background",
+                            "text-destructive"
+                          )}>
+                             <AlertTriangle size={14} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex justify-between items-center mb-1">
+                              <h4 className="text-sm font-bold text-foreground">{error.error_type}</h4>
+                              <span className="text-[10px] tabular-nums text-muted-foreground">{new Date(error.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                            </div>
+                            <p className="text-sm text-muted-foreground leading-relaxed line-clamp-1">{error.error_message}</p>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="py-12 text-center border border-dashed border-border rounded-xl">
+                        <CheckCircle size={24} className="mx-auto text-emerald-500/30 mb-3" />
+                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">No anomalies detected</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t border-border/50" />
+
+            {/* Error Breakdown */}
+            <div className="space-y-8">
+              <h2 className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Breakdown by Type</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+                {Array.from(errors.reduce((acc, err) => acc.set(err.error_type, (acc.get(err.error_type) || 0) + 1), new Map<string, number>()))
+                  .map(([type, count], idx) => (
+                    <div key={idx} className="space-y-1">
+                      <p className="text-sm font-semibold text-muted-foreground truncate">{type}</p>
+                      <p className="text-2xl font-bold text-foreground">{count}</p>
+                    </div>
+                  ))}
+              </div>
+            </div>
           </div>
         </div>
       </div>
-
-      {/* Main Content */}
-      <motion.div
-        initial="hidden"
-        animate="show"
-        variants={container}
-        className="flex-1 p-8 overflow-y-auto"
-      >
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Email Status Distribution */}
-          <motion.div
-            variants={item}
-            className="lg:col-span-1 glass border border-white/10 rounded-xl p-6"
-          >
-            <div className="flex items-center gap-2 mb-6">
-              <Filter className="w-5 h-5 text-purple-500" />
-              <h2 className="text-lg font-semibold">Email Status Distribution</h2>
-            </div>
-
-            <div className="space-y-4">
-              {emailStats.length > 0 ? (
-                emailStats.map((stat, index) => (
-                  <div key={index} className="space-y-2">
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-gray-300 capitalize">{stat.status}</span>
-                      <span className="font-semibold text-white">{stat.count}</span>
-                    </div>
-                    <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{
-                          width: `${Math.max(
-                            (stat.count / Math.max(...emailStats.map((s) => s.count))) * 100,
-                            5
-                          )}%`,
-                        }}
-                        transition={{ delay: 0.3 + index * 0.1, duration: 0.5 }}
-                        className={`h-full ${
-                          stat.status === 'processed'
-                            ? 'bg-green-500'
-                            : stat.status === 'failed'
-                              ? 'bg-red-500'
-                              : stat.status === 'queued'
-                                ? 'bg-blue-500'
-                                : 'bg-amber-500'
-                        }`}
-                      />
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-gray-400 text-sm">No email data available</div>
-              )}
-            </div>
-          </motion.div>
-
-          {/* Recent Processing Errors */}
-          <motion.div
-            variants={item}
-            className="lg:col-span-2 glass border border-white/10 rounded-xl p-6"
-          >
-            <div className="flex items-center gap-2 mb-6">
-              <AlertTriangle className="w-5 h-5 text-red-500" />
-              <h2 className="text-lg font-semibold">Recent Processing Errors</h2>
-            </div>
-
-            <div className="space-y-3 max-h-96 overflow-y-auto">
-              {errors.length > 0 ? (
-                errors.map((error, index) => (
-                  <motion.div
-                    key={error.id}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                    className="glass-subtle border border-red-500/20 rounded-lg p-4 hover:border-red-500/40 transition-colors"
-                  >
-                    <div className="flex items-start gap-3">
-                      <AlertTriangle className="w-4 h-4 text-red-500 mt-1 flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-white truncate">{error.error_type}</p>
-                        <p className="text-xs text-gray-400 mt-1 line-clamp-2">{error.error_message}</p>
-                        <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
-                          <Clock className="w-3 h-3" />
-                          <span>
-                            {new Date(error.created_at).toLocaleDateString()} at{' '}
-                            {new Date(error.created_at).toLocaleTimeString()}
-                          </span>
-                        </div>
-                      </div>
-                      <span className="text-xs text-gray-500 flex-shrink-0">{error.message_id.slice(0, 8)}</span>
-                    </div>
-                  </motion.div>
-                ))
-              ) : (
-                <div className="text-gray-400 text-sm text-center py-8">
-                  <CheckCircle className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                  <p>No processing errors!</p>
-                </div>
-              )}
-            </div>
-          </motion.div>
-        </div>
-
-        {/* Detailed Error Analysis */}
-        <motion.div variants={item} className="mt-8 glass border border-white/10 rounded-xl p-6">
-          <h2 className="text-lg font-semibold mb-6">Error Type Breakdown</h2>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {errors.length > 0 ? (
-              Array.from(
-                errors.reduce(
-                  (acc, err) => {
-                    acc.set(err.error_type, (acc.get(err.error_type) || 0) + 1)
-                    return acc
-                  },
-                  new Map<string, number>()
-                ),
-                ([type, count]) => ({ type, count })
-              )
-                .sort((a, b) => b.count - a.count)
-                .map((item, index) => (
-                  <motion.div
-                    key={item.type}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="glass border border-white/5 rounded-lg p-4 text-center hover:border-white/10 transition-colors"
-                  >
-                    <p className="text-2xl font-bold text-red-400">{item.count}</p>
-                    <p className="text-xs text-gray-400 mt-2 line-clamp-2">{item.type}</p>
-                  </motion.div>
-                ))
-            ) : (
-              <div className="col-span-full text-center text-gray-400 py-8">No error data available</div>
-            )}
-          </div>
-        </motion.div>
-      </motion.div>
-    </div>
     </div>
   )
 }

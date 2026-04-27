@@ -74,14 +74,15 @@ export function ResizablePanel({
       {/* Drag handle */}
       <motion.div
         onMouseDown={handleMouseDown}
-        animate={{ opacity: isResizing ? 1 : 0.3, x: isResizing ? 0 : -2 }}
+        animate={{ opacity: isResizing ? 1 : 0 }}
+        whileHover={{ opacity: 1 }}
         transition={{ duration: 0.2 }}
-        className={`absolute -right-1 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-500/0 via-blue-500/50 to-blue-500/0 cursor-col-resize hover:via-blue-500/100 transition-opacity group ${
+        className={`absolute -right-[0.5px] top-0 bottom-0 w-[1px] bg-foreground/20 cursor-col-resize z-30 ${
           isResizing ? 'opacity-100' : ''
         }`}
       >
-        <div className="absolute -left-2 top-1/2 -translate-y-1/2 w-5 h-10 rounded flex items-center justify-center group-hover:bg-white/5">
-          <div className="w-1 h-6 bg-blue-500/50 rounded-full" />
+        <div className="absolute -left-1.5 top-1/2 -translate-y-1/2 w-4 h-12 flex items-center justify-center">
+          <div className="w-[2px] h-6 bg-border rounded-full" />
         </div>
       </motion.div>
     </div>

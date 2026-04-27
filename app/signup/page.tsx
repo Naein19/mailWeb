@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { Mail, Lock, User, LogIn } from 'lucide-react'
+import { Mail, Lock, User } from 'lucide-react'
 import { signUp } from '@/lib/auth'
 
 export default function SignUpPage() {
@@ -42,133 +42,107 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl" />
-      </div>
-
+    <div className="min-h-screen bg-[#0B0F14] flex items-center justify-center p-4">
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="relative w-full max-w-md"
+        transition={{ duration: 0.3 }}
+        className="w-full max-w-[400px]"
       >
-        <div className="glass rounded-2xl p-8 border border-white/10">
+        <div className="bg-[#111827] border border-[#1F2937] rounded-lg p-8 shadow-2xl">
           {/* Header */}
-          <div className="mb-8 text-center">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 mb-4">
-              <Mail className="w-6 h-6 text-white" />
+          <div className="mb-10 text-center space-y-3">
+            <div className="flex flex-col items-center gap-4">
+              <img src="/logo.svg" alt="Cluex Logo" className="w-12 h-12" />
+              <h1 className="text-2xl font-bold text-white tracking-tight">Cluex</h1>
             </div>
-            <h1 className="text-2xl font-bold">Create Account</h1>
-            <p className="text-sm text-gray-400 mt-2">Join EmailCluster today</p>
+            <p className="text-xs font-medium text-slate-500 uppercase tracking-widest">Join the ecosystem</p>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSignUp} className="space-y-4">
+          <form onSubmit={handleSignUp} className="space-y-6">
             {error && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm"
-              >
+              <div className="p-3 rounded bg-red-500/5 border border-red-500/10 text-red-500 text-[13px] font-medium">
                 {error}
-              </motion.div>
+              </div>
             )}
 
-            {/* Name Input */}
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Full Name
-              </label>
-              <div className="relative">
-                <User className="absolute left-3 top-3 w-5 h-5 text-gray-500" />
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="John Doe"
-                  required
-                  className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:bg-white/10 transition-colors"
-                />
+            <div className="space-y-4">
+              {/* Name */}
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest pl-1">Full Name</label>
+                <div className="relative">
+                  <User className="absolute left-3 top-3.5 w-4 h-4 text-slate-600" />
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="John Doe"
+                    required
+                    className="w-full pl-10 pr-4 py-3 rounded bg-[#0B0F14] border border-[#1F2937] text-white text-[13px] focus:outline-none focus:border-blue-500 transition-colors placeholder:text-slate-700"
+                  />
+                </div>
+              </div>
+
+              {/* Email */}
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest pl-1">Email</label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3.5 w-4 h-4 text-slate-600" />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="name@company.com"
+                    required
+                    className="w-full pl-10 pr-4 py-3 rounded bg-[#0B0F14] border border-[#1F2937] text-white text-[13px] focus:outline-none focus:border-blue-500 transition-colors placeholder:text-slate-700"
+                  />
+                </div>
+              </div>
+
+              {/* Password */}
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest pl-1">Password</label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3.5 w-4 h-4 text-slate-600" />
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    className="w-full pl-10 pr-4 py-3 rounded bg-[#0B0F14] border border-[#1F2937] text-white text-[13px] focus:outline-none focus:border-blue-500 transition-colors placeholder:text-slate-700"
+                  />
+                </div>
+              </div>
+
+              {/* Confirm Password */}
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest pl-1">Confirm Password</label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3.5 w-4 h-4 text-slate-600" />
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    className="w-full pl-10 pr-4 py-3 rounded bg-[#0B0F14] border border-[#1F2937] text-white text-[13px] focus:outline-none focus:border-blue-500 transition-colors placeholder:text-slate-700"
+                  />
+                </div>
               </div>
             </div>
 
-            {/* Email Input */}
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Email Address
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-3 w-5 h-5 text-gray-500" />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                  required
-                  className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:bg-white/10 transition-colors"
-                />
-              </div>
-            </div>
-
-            {/* Password Input */}
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Password
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-3 w-5 h-5 text-gray-500" />
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  required
-                  className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:bg-white/10 transition-colors"
-                />
-              </div>
-            </div>
-
-            {/* Confirm Password Input */}
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Confirm Password
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-3 w-5 h-5 text-gray-500" />
-                <input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="••••••••"
-                  required
-                  className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:bg-white/10 transition-colors"
-                />
-              </div>
-            </div>
-
-            {/* Submit Button */}
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              type="submit"
+            <button
               disabled={isLoading}
-              className="w-full mt-6 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium py-2.5 rounded-lg hover:shadow-lg hover:shadow-blue-500/25 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+              className="btn-primary w-full h-11"
             >
-              <LogIn className="w-4 h-4" />
-              {isLoading ? 'Creating account...' : 'Sign Up'}
-            </motion.button>
+              {isLoading ? 'Creating account...' : 'Create Account'}
+            </button>
 
-            {/* Login Link */}
-            <p className="text-center text-sm text-gray-400 mt-6">
+            <p className="text-center text-[13px] text-slate-500">
               Already have an account?{' '}
-              <a
-                href="/login"
-                className="text-blue-400 hover:text-blue-300 font-medium transition-colors"
-              >
-                Sign in here
-              </a>
+              <a href="/login" className="text-blue-500 hover:underline font-semibold">Sign in here</a>
             </p>
           </form>
         </div>

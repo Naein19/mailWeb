@@ -1,18 +1,23 @@
 'use client'
 
 import { useState } from 'react'
-import { Search, Bell, Settings, LogOut, User, ChevronDown } from 'lucide-react'
+import { Search, Bell, Settings, LogOut, ChevronDown, Moon, Sun, Command } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useDashboardStore } from '@/lib/store'
 import { useAuth } from '@/components/auth-provider'
 import { signOut } from '@/lib/auth'
 import Link from 'next/link'
+import { cn } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
 
-export function TopBar() {
+interface TopBarProps {
+  hideSearch?: boolean
+}
+
+export function TopBar({ hideSearch = false }: TopBarProps) {
   const [showMenu, setShowMenu] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
-  const { setFilters } = useDashboardStore()
+  const { setFilters, theme, setTheme, activeAccount } = useDashboardStore()
   const { user } = useAuth()
   const router = useRouter()
 
@@ -26,112 +31,134 @@ export function TopBar() {
   }
 
   return (
-    <div className="h-16 border-b border-white/10 bg-black/20 backdrop-blur-md px-6 flex items-center justify-between relative">
-      {/* Search */}
-      <div className="flex-1 max-w-md">
-        <div className="relative">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
-          <input
-            type="text"
-            placeholder="Search emails or clusters..."
-            onChange={(e) =>
-              setFilters({ search: e.target.value })
-            }
-            className="w-full pl-10 pr-4 py-2 rounded-lg bg-white/5 border border-white/10 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm transition-all duration-200 backdrop-blur-sm"
-          />
-        </div>
+    <div className="h-16 flex items-center justify-between px-8 border-b border-border bg-background/5 backdrop-blur-md sticky top-0 z-30 shrink-0">
+      {/* Search Area */}
+      <div className="flex-1 max-w-xl">
+        {!hideSearch && (
+          <div className="relative group max-w-md">
+            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/50 group-focus-within:text-foreground transition-colors" />
+            <input
+              type="text"
+              placeholder="Search clusters or emails..."
+              onChange={(e) => setFilters({ search: e.target.value })}
+              className="w-full bg-white/[0.03] border border-border rounded-xl px-9 py-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/30 shadow-sm"
+            />
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 px-1.5 py-0.5 rounded border border-border bg-background shadow-sm pointer-events-none">
+              <Command size={10} className="text-muted-foreground" />
+              <span className="text-[10px] font-bold text-muted-foreground">K</span>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Right Actions */}
-      <div className="flex items-center gap-4 ml-6">
-        {/* Notifications */}
-        <div className="relative">
-          <motion.button
-            onClick={() => setShowNotifications(!showNotifications)}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="relative p-2 hover:bg-white/10 rounded-lg transition-colors duration-200"
+      {/* Right Side Actions */}
+      <div className="flex items-center gap-3">
+        {/* Toggle Theme - Pill style like screenshot */}
+        <div className="flex items-center gap-1 p-1 bg-white/[0.03] border border-border rounded-lg shadow-inner">
+          <button
+            onClick={() => setTheme('dark')}
+            className={cn(
+              "p-1.5 rounded-md transition-all",
+              theme === 'dark' ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+            )}
           >
-            <Bell className="w-5 h-5 text-gray-400 hover:text-white" />
-            <motion.span
-              animate={{ scale: [1, 1.2, 1] }}
-              transition={{ repeat: Infinity, duration: 2 }}
-              className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"
-            />
-          </motion.button>
+            <Moon size={13} />
+          </button>
+          <button
+            onClick={() => setTheme('light')}
+            className={cn(
+              "p-1.5 rounded-md transition-all",
+              theme === 'light' ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <Sun size={13} />
+          </button>
+        </div>
 
+        <div className="relative">
+          <button
+            onClick={() => setShowNotifications(!showNotifications)}
+            className="p-2.5 hover:bg-white/[0.05] rounded-xl text-muted-foreground hover:text-foreground transition-all relative group"
+          >
+            <Bell size={18} className="group-hover:rotate-12 transition-transform" />
+            <span className="absolute top-2 right-2 w-4 h-4 bg-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-background shadow-lg">
+              3
+            </span>
+          </button>
+          
           <AnimatePresence>
             {showNotifications && (
               <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.15 }}
-                className="absolute right-0 mt-2 w-80 glass border border-white/10 rounded-xl shadow-xl z-50"
+                initial={{ opacity: 0, scale: 0.95, y: 5 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 5 }}
+                transition={{ duration: 0.1 }}
+                className="absolute right-0 mt-3 w-80 bg-popover/80 border border-border rounded-2xl shadow-2xl p-4 z-50 backdrop-blur-xl"
               >
-                <div className="p-4">
-                  <p className="text-sm text-gray-400">No new notifications</p>
+                <div className="text-center py-10">
+                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Bell size={18} className="text-primary" />
+                  </div>
+                  <p className="text-xs font-bold text-foreground">You're all caught up!</p>
+                  <p className="text-[10px] text-muted-foreground mt-1 opacity-60">No new notifications to show right now.</p>
                 </div>
               </motion.div>
             )}
           </AnimatePresence>
         </div>
 
-        {/* Settings & Profile Dropdown */}
+        <div className="w-px h-6 bg-border mx-1" />
+
         <div className="relative">
-          <motion.button
+          <button
             onClick={() => setShowMenu(!showMenu)}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="flex items-center gap-2 px-3 py-2 hover:bg-white/10 rounded-lg transition-colors duration-200"
+            className="flex items-center gap-3 p-1.5 hover:bg-white/[0.05] rounded-xl transition-all group"
           >
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-cyan-300 flex items-center justify-center flex-shrink-0 font-bold text-black text-sm">
-              {user?.email?.[0]?.toUpperCase() || 'U'}
+            <div className="flex flex-col items-end mr-1 hidden sm:flex">
+              <p className="text-xs font-bold text-foreground leading-none">{(activeAccount || user?.email || 'User').split('@')[0]}</p>
+              <p className="text-[9px] text-muted-foreground leading-none mt-1 opacity-60">{activeAccount || user?.email}</p>
             </div>
-            <ChevronDown className="w-4 h-4 text-gray-400" />
-          </motion.button>
+            <div className="hidden sm:flex items-center gap-1 mr-1">
+              <span className="w-2 h-2 rounded-full bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.5)]" />
+              <span className="text-[10px] text-muted-foreground max-w-[150px] truncate">{activeAccount || user?.email}</span>
+            </div>
+            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center font-bold text-primary-foreground text-xs shadow-md group-hover:scale-105 transition-transform">
+              {(activeAccount || user?.email)?.[0]?.toUpperCase() || 'U'}
+            </div>
+            <ChevronDown size={14} className="text-muted-foreground group-hover:text-foreground transition-all" />
+          </button>
 
           <AnimatePresence>
             {showMenu && (
               <motion.div
-                initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                transition={{ duration: 0.2 }}
-                className="absolute right-0 mt-2 w-56 glass border border-white/10 rounded-xl shadow-xl z-50 overflow-hidden"
+                initial={{ opacity: 0, scale: 0.95, y: 5 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 5 }}
+                transition={{ duration: 0.1 }}
+                className="absolute right-0 mt-3 w-60 bg-popover/80 border border-border rounded-2xl shadow-2xl z-50 overflow-hidden backdrop-blur-xl"
               >
-                <div className="p-3 border-b border-white/10">
-                  <p className="text-sm font-medium text-white">{user?.email?.split('@')[0]}</p>
-                  <p className="text-xs text-gray-400">{user?.email}</p>
+                <div className="px-5 py-4 border-b border-border bg-white/[0.03]">
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1 shadow-sm">Account</p>
+                  <p className="text-xs font-bold text-foreground truncate">{activeAccount || user?.email}</p>
                 </div>
-
-                <div className="py-2">
+                <div className="p-1.5">
                   <Link
                     href="/settings"
                     onClick={() => setShowMenu(false)}
-                    className="flex items-center gap-3 px-4 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors duration-200"
+                    className="flex items-center gap-3 px-3.5 py-2.5 text-xs font-bold text-muted-foreground hover:bg-white/[0.05] hover:text-foreground rounded-xl transition-all"
                   >
-                    <Settings className="w-4 h-4" />
+                    <Settings size={14} />
                     Settings
                   </Link>
-                  <button
-                    onClick={() => setShowMenu(false)}
-                    className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors duration-200"
-                  >
-                    <User className="w-4 h-4" />
-                    Profile
-                  </button>
                 </div>
-
-                <div className="border-t border-white/10 p-2">
-                  <motion.button
+                <div className="p-1.5 border-t border-border bg-white/[0.02]">
+                  <button
                     onClick={handleLogout}
-                    whileHover={{ x: 4 }}
-                    className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors duration-200 rounded-lg"
+                    className="w-full text-left flex items-center gap-3 px-3.5 py-2.5 text-xs font-bold text-destructive hover:bg-destructive/10 rounded-xl transition-all"
                   >
-                    <LogOut className="w-4 h-4" />
-                    Logout
-                  </motion.button>
+                    <LogOut size={14} />
+                    Sign Out
+                  </button>
                 </div>
               </motion.div>
             )}

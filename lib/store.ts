@@ -10,11 +10,14 @@ interface DashboardStore {
   isComposerOpen: boolean
   composerType: 'reply_all' | 'reply_one' | 'forward' | null
   composerRecipient: string | null
+  theme: 'light' | 'dark'
   
   // Data State
   clusters: Cluster[]
   emails: Record<string, Email[]>
   currentUser: User | null
+  activeAccount: string | null
+  connectedAccounts: string[]
   filters: ClusterFilters
   
   // Actions
@@ -23,12 +26,15 @@ interface DashboardStore {
   setEmailDrawerOpen: (open: boolean) => void
   setSidebarOpen: (open: boolean) => void
   setComposerOpen: (open: boolean, type?: 'reply_all' | 'reply_one' | 'forward', recipient?: string) => void
+  setTheme: (theme: 'light' | 'dark') => void
   setClusters: (clusters: Cluster[]) => void
   setEmails: (clusterId: string, emails: Email[]) => void
   addCluster: (cluster: Cluster) => void
   updateCluster: (id: string, updates: Partial<Cluster>) => void
   addEmailToCluster: (clusterId: string, email: Email) => void
   setCurrentUser: (user: User | null) => void
+  setActiveAccount: (email: string) => void
+  setConnectedAccounts: (emails: string[]) => void
   setFilters: (filters: ClusterFilters) => void
   
   // Computed
@@ -46,9 +52,12 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
   isComposerOpen: false,
   composerType: null,
   composerRecipient: null,
+  theme: 'dark',
   clusters: [],
   emails: {},
   currentUser: null,
+  activeAccount: null,
+  connectedAccounts: [],
   filters: {},
 
   setSelectedClusterId: (id: string | null) => set({ selectedClusterId: id }),
@@ -57,6 +66,7 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
   setSidebarOpen: (open: boolean) => set({ sidebarOpen: open }),
   setComposerOpen: (open: boolean, type?: 'reply_all' | 'reply_one' | 'forward', recipient?: string) =>
     set({ isComposerOpen: open, composerType: type || null, composerRecipient: recipient || null }),
+  setTheme: (theme: 'light' | 'dark') => set({ theme }),
   
   setClusters: (clusters: Cluster[]) => set({ clusters }),
   setEmails: (clusterId: string, emails: Email[]) =>
@@ -85,6 +95,11 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
     })),
   
   setCurrentUser: (user: User | null) => set({ currentUser: user }),
+  setActiveAccount: (email: string) => {
+    if (typeof window !== 'undefined') localStorage.setItem('active_account', email)
+    set({ activeAccount: email, selectedClusterId: null, clusters: [], emails: {} })
+  },
+  setConnectedAccounts: (emails: string[]) => set({ connectedAccounts: emails }),
   setFilters: (filters: ClusterFilters) => set({ filters }),
 
   getFilteredClusters: () => {

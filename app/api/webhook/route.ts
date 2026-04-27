@@ -17,8 +17,11 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
 
-    // Extract webhook URL from request headers or body
-    const webhookUrl = request.headers.get('x-webhook-url') || body.webhookUrl
+    // Extract webhook URL from request headers, body, or environment variable
+    const webhookUrl = request.headers.get('x-webhook-url')
+      || body.webhookUrl
+      || process.env.NEXT_PUBLIC_N8N_REPLY_WEBHOOK
+      || null
 
     // Validate webhook URL exists
     if (!webhookUrl) {

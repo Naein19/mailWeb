@@ -23,13 +23,13 @@ export function ToastContainer() {
   const getColors = (type: string) => {
     switch (type) {
       case 'success':
-        return 'bg-green-500/20 border-green-500/30 text-green-300'
+        return 'bg-secondary border-green-500/50 text-foreground dark:text-green-400'
       case 'error':
-        return 'bg-red-500/20 border-red-500/30 text-red-300'
+        return 'bg-secondary border-red-500/50 text-foreground dark:text-red-400'
       case 'warning':
-        return 'bg-yellow-500/20 border-yellow-500/30 text-yellow-300'
+        return 'bg-secondary border-yellow-500/50 text-foreground dark:text-yellow-400'
       default:
-        return 'bg-blue-500/20 border-blue-500/30 text-blue-300'
+        return 'bg-secondary border-border text-foreground'
     }
   }
 

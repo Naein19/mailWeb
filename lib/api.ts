@@ -231,9 +231,10 @@ function blendById<T>(realItems: T[], mockItems: T[], getId: (item: T) => string
 }
 
 // Get all clusters with real data
-export async function getClusters(): Promise<Cluster[]> {
+export async function getClusters(accountId?: string | null): Promise<Cluster[]> {
   try {
-    const data = await safeFetch<Cluster[]>('/api/clusters')
+    const url = accountId ? `/api/clusters?account_id=${encodeURIComponent(accountId)}` : '/api/clusters'
+    const data = await safeFetch<Cluster[]>(url)
 
     if (!data || data.length === 0) {
       console.warn('No clusters returned from API')
@@ -248,9 +249,13 @@ export async function getClusters(): Promise<Cluster[]> {
 }
 
 // Get emails for a specific cluster
-export async function getEmailsForCluster(clusterId: string): Promise<Email[]> {
+export async function getEmailsForCluster(clusterId: string, accountId?: string | null): Promise<Email[]> {
   try {
-    const data = await safeFetch<Email[]>(`/api/clusters/${encodeURIComponent(clusterId)}/emails`)
+    let url = `/api/clusters/${encodeURIComponent(clusterId)}/emails`
+    if (accountId) {
+      url += `?account_id=${encodeURIComponent(accountId)}`
+    }
+    const data = await safeFetch<Email[]>(url)
 
     if (!data || data.length === 0) {
       console.warn(`No emails found for cluster ${clusterId}`)
