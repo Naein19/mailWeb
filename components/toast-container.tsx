@@ -23,18 +23,18 @@ export function ToastContainer() {
   const getColors = (type: string) => {
     switch (type) {
       case 'success':
-        return 'bg-secondary border-green-500/50 text-foreground dark:text-green-400'
+        return 'border-l-4 border-emerald-500 bg-emerald-500/10 text-emerald-400'
       case 'error':
-        return 'bg-secondary border-red-500/50 text-foreground dark:text-red-400'
+        return 'border-l-4 border-red-500 bg-red-500/10 text-red-400'
       case 'warning':
-        return 'bg-secondary border-yellow-500/50 text-foreground dark:text-yellow-400'
+        return 'border-l-4 border-amber-500 bg-amber-500/10 text-amber-400'
       default:
-        return 'bg-secondary border-border text-foreground'
+        return 'border-l-4 border-blue-500 bg-blue-500/10 text-blue-400'
     }
   }
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2">
+    <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none">
       <AnimatePresence>
         {toasts.map((toast) => (
           <motion.div
@@ -42,18 +42,18 @@ export function ToastContainer() {
             initial={{ opacity: 0, x: 100 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 100 }}
-            transition={{ duration: 0.2 }}
-            className={`flex items-center gap-3 px-4 py-3 rounded-lg border backdrop-blur-md ${getColors(
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className={`flex items-center gap-3 px-4 py-3 rounded-lg backdrop-blur-md border border-white/10 bg-background pointer-events-auto ${getColors(
               toast.type
             )}`}
           >
             {getIcon(toast.type)}
-            <span className="text-sm font-medium">{toast.message}</span>
+            <span className="text-sm font-bold">{toast.message}</span>
             <button
               onClick={() => removeToast(toast.id)}
-              className="ml-2 p-1 hover:bg-white/10 rounded transition-colors"
+              className="ml-auto p-1 hover:bg-white/10 rounded transition-colors"
             >
-              <X className="w-4 h-4" />
+              <X className="w-3.5 h-3.5" />
             </button>
           </motion.div>
         ))}

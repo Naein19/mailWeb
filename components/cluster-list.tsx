@@ -1,26 +1,49 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useDashboardStore } from '@/lib/store'
 import { supabase } from '@/lib/auth'
 import { ClusterCard } from './cluster-card'
 import type { Cluster } from '@/lib/types'
 import { Loader2, ListFilter, X } from 'lucide-react'
 
-export function ClusterList({ isLoading }: { isLoading?: boolean }) {
+export function ClusterList({ isLoading, onReplyAll }: { isLoading?: boolean; onReplyAll?: (cluster: Cluster) => void }) {
   const {
     selectedClusterId,
     setSelectedClusterId,
     setEmails,
     getFilteredClusters,
     activeAccount,
+    connectedAccounts,
     filters,
     setFilters,
   } = useDashboardStore()
 
   const [loadingClusterId, setLoadingClusterId] = useState<string | null>(null)
+  const [lastPolledAt, setLastPolledAt] = useState<string | null>(null)
   const filteredClusters = getFilteredClusters()
   const hasSearchFilter = !!filters.search
+
+  // Check if account has been polled before
+  useEffect(() => {
+    if (!activeAccount) return
+
+    const checkPollingStatus = async () => {
+      try {
+        const { data: tokenData } = await supabase
+          .from('user_gmail_tokens')
+          .select('last_polled_at')
+          .eq('email', activeAccount)
+          .single()
+        
+        setLastPolledAt(tokenData?.last_polled_at || null)
+      } catch (error) {
+        console.error('[ClusterList] Error checking polling status:', error)
+      }
+    }
+
+    checkPollingStatus()
+  }, [activeAccount])
 
   const handleClusterClick = async (cluster: Cluster) => {
     setSelectedClusterId(cluster.id)
@@ -29,7 +52,6 @@ export function ClusterList({ isLoading }: { isLoading?: boolean }) {
     try {
       const { data, error } = await supabase.rpc('get_emails_for_cluster', {
         p_cluster_id: cluster.id,
-        p_account_id: activeAccount || '',
       })
       if (error) {
         console.error('[ClusterList] Failed to load emails for cluster:', {
@@ -138,10 +160,24 @@ export function ClusterList({ isLoading }: { isLoading?: boolean }) {
                   Clear search
                 </button>
               </>
+            ) : connectedAccounts.length === 0 ? (
+              // No connected accounts at all
+              <>
+                <p className="text-xs font-bold text-muted-foreground mb-2">Connect your Gmail to get started</p>
+                <p className="text-[10px] text-muted-foreground/60 mb-4">Link your email account to see your email clusters</p>
+              </>
+            ) : !lastPolledAt ? (
+              // Has accounts but haven't polled yet
+              <>
+                <div className="text-6xl mb-4 animate-pulse">📬</div>
+                <p className="text-xs font-bold text-muted-foreground mb-1">Setting up your inbox…</p>
+                <p className="text-[10px] text-muted-foreground/60">Your first emails will appear within 1 minute</p>
+              </>
             ) : (
+              // Has accounts, has polled, but no clusters
               <>
                 <p className="text-xs font-bold text-muted-foreground mb-1">No clusters yet</p>
-                <p className="text-[10px] text-muted-foreground/60">Your inbox is quiet — connecting your first Gmail account will start the clustering process</p>
+                <p className="text-[10px] text-muted-foreground/60">Your inbox may be empty or n8n is still processing</p>
               </>
             )}
           </div>
@@ -153,6 +189,7 @@ export function ClusterList({ isLoading }: { isLoading?: boolean }) {
                   cluster={cluster}
                   isActive={selectedClusterId === cluster.id}
                   onClick={() => handleClusterClick(cluster)}
+                  onReplyAll={() => onReplyAll?.(cluster)}
                 />
                 {loadingClusterId === cluster.id && (
                   <div className="absolute inset-0 bg-background/30 backdrop-blur-[1px] flex items-center justify-center z-10 transition-all">

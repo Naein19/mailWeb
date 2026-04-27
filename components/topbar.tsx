@@ -1,11 +1,11 @@
 'use client'
 
-import { useState } from 'react'
-import { Search, Bell, Settings, LogOut, ChevronDown, Moon, Sun, Command } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { Search, Bell, Settings, LogOut, ChevronDown, Moon, Sun, Command, Plus, Check } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useDashboardStore } from '@/lib/store'
 import { useAuth } from '@/components/auth-provider'
-import { signOut } from '@/lib/auth'
+import { signOut, setActiveAccountStorage } from '@/lib/auth'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
@@ -17,9 +17,40 @@ interface TopBarProps {
 export function TopBar({ hideSearch = false }: TopBarProps) {
   const [showMenu, setShowMenu] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
-  const { setFilters, theme, setTheme, activeAccount } = useDashboardStore()
+  const { setFilters, theme, setTheme, activeAccount, setActiveAccount, connectedAccounts } = useDashboardStore()
   const { user } = useAuth()
   const router = useRouter()
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  // Helper function to get avatar color based on email hash
+  const getAvatarColor = (email: string) => {
+    const hash = email.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+    const colors = [
+      'from-blue-500 to-blue-600',
+      'from-purple-500 to-purple-600',
+      'from-pink-500 to-pink-600',
+      'from-cyan-500 to-cyan-600',
+      'from-emerald-500 to-emerald-600',
+      'from-orange-500 to-orange-600',
+      'from-indigo-500 to-indigo-600',
+      'from-rose-500 to-rose-600',
+    ]
+    return colors[hash % colors.length]
+  }
+
+  // Handle click outside to close menu
+  useEffect(() => {
+    if (!showMenu) return
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowMenu(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [showMenu])
 
   const handleLogout = async () => {
     try {
@@ -28,6 +59,22 @@ export function TopBar({ hideSearch = false }: TopBarProps) {
     } catch (error) {
       console.error('Logout failed:', error)
     }
+  }
+
+  const handleAddAccount = () => {
+    try {
+      setShowMenu(false)
+      // Navigate to login page instead of direct OAuth
+      router.push('/login')
+    } catch (error) {
+      console.error('Failed to navigate to login:', error)
+    }
+  }
+
+  const handleSwitchAccount = (email: string) => {
+    setActiveAccount(email)
+    setActiveAccountStorage(email)
+    setShowMenu(false)
   }
 
   return (
@@ -109,13 +156,16 @@ export function TopBar({ hideSearch = false }: TopBarProps) {
 
         <div className="w-px h-6 bg-border mx-1" />
 
-        <div className="relative">
+        <div className="relative" ref={menuRef}>
           <button
             onClick={() => setShowMenu(!showMenu)}
             className="flex items-center gap-2 px-3 py-1.5 hover:bg-white/[0.05] rounded-full transition-all group border border-border"
           >
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center font-bold text-white text-xs shadow-md">
+              <div className={cn(
+                "w-6 h-6 rounded-full bg-gradient-to-br flex items-center justify-center font-bold text-white text-xs shadow-md",
+                activeAccount ? getAvatarColor(activeAccount) : "from-gray-500 to-gray-600"
+              )}>
                 {(activeAccount || user?.email)?.[0]?.toUpperCase() || 'U'}
               </div>
               <div className="flex flex-col items-start leading-none hidden sm:block">
@@ -124,7 +174,7 @@ export function TopBar({ hideSearch = false }: TopBarProps) {
               </div>
             </div>
             <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)] flex-shrink-0" />
-            <ChevronDown size={14} className="text-muted-foreground group-hover:text-foreground transition-all flex-shrink-0" />
+            <ChevronDown size={14} className={cn("text-muted-foreground group-hover:text-foreground transition-all flex-shrink-0", showMenu && "rotate-180")} />
           </button>
 
           <AnimatePresence>
@@ -134,13 +184,51 @@ export function TopBar({ hideSearch = false }: TopBarProps) {
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 5 }}
                 transition={{ duration: 0.1 }}
-                className="absolute right-0 mt-3 w-60 bg-popover/80 border border-border rounded-2xl shadow-2xl z-50 overflow-hidden backdrop-blur-xl"
+                className="absolute right-0 mt-3 w-72 bg-popover border border-border rounded-2xl shadow-2xl z-50 overflow-hidden"
               >
+                {/* Connected Accounts Header */}
                 <div className="px-5 py-4 border-b border-border bg-white/[0.03]">
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1 shadow-sm">Account</p>
-                  <p className="text-xs font-bold text-foreground truncate">{activeAccount || user?.email}</p>
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3">Connected Accounts</p>
+                  <div className="space-y-2 max-h-[240px] overflow-y-auto">
+                    {connectedAccounts.length > 0 ? (
+                      connectedAccounts.map((acc) => (
+                        <button
+                          key={acc}
+                          onClick={() => handleSwitchAccount(acc)}
+                          className={cn(
+                            "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs transition-colors group",
+                            activeAccount === acc ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-white/[0.05]"
+                          )}
+                        >
+                          <div className={cn(
+                            "w-5 h-5 rounded-md bg-gradient-to-br flex items-center justify-center text-[10px] font-bold text-white shrink-0",
+                            getAvatarColor(acc)
+                          )}>
+                            {acc[0].toUpperCase()}
+                          </div>
+                          <span className="flex-1 text-left truncate font-medium">{acc}</span>
+                          {activeAccount === acc && <Check size={14} className="shrink-0 text-primary" />}
+                        </button>
+                      ))
+                    ) : (
+                      <p className="text-[10px] text-muted-foreground/60 px-3 py-2">No connected accounts</p>
+                    )}
+                  </div>
                 </div>
-                <div className="p-1.5">
+
+                {/* Connect Gmail Button */}
+                <div className="p-1.5 border-t border-border bg-white/[0.02]">
+                  <button
+                    onClick={handleAddAccount}
+                    className="w-full flex items-center gap-3 px-3.5 py-2.5 text-xs font-bold text-primary hover:bg-primary/5 rounded-xl transition-colors"
+                  >
+                    <Plus size={14} />
+                    Connect another Gmail account
+                  </button>
+                </div>
+
+                {/* Settings */}
+                <div className="p-1.5 border-t border-border">
                   <Link
                     href="/settings"
                     onClick={() => setShowMenu(false)}
@@ -150,6 +238,8 @@ export function TopBar({ hideSearch = false }: TopBarProps) {
                     Settings
                   </Link>
                 </div>
+
+                {/* Sign Out */}
                 <div className="p-1.5 border-t border-border bg-white/[0.02]">
                   <button
                     onClick={handleLogout}

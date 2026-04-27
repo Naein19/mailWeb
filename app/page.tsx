@@ -29,6 +29,12 @@ function DashboardContent() {
     setConnectedAccounts,
   } = useDashboardStore()
 
+  const handleCardReplyAll = (cluster: Cluster) => {
+    // Select the cluster
+    setSelectedClusterId(cluster.id)
+    // The ClusterDetail component will handle showing the compose panel
+  }
+
   useEffect(() => {
     const stored = getActiveAccount()
     const accounts = getConnectedAccounts()
@@ -193,7 +199,6 @@ function DashboardContent() {
         try {
           const { data: emailData, error: emailError } = await supabase.rpc('get_emails_for_cluster', {
             p_cluster_id: firstCluster.id,
-            p_account_id: accountId, // Use email here too
           })
 
           if (emailError) {
@@ -331,7 +336,7 @@ function DashboardContent() {
               transition={{ duration: 0.3 }}
               className="h-full border-r border-white/10 overflow-hidden flex flex-col"
             >
-              <ClusterList isLoading={isLoading} />
+              <ClusterList isLoading={isLoading} onReplyAll={handleCardReplyAll} />
             </motion.div>
           </ResizablePanel>
           <motion.div

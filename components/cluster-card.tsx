@@ -9,12 +9,20 @@ interface ClusterCardProps {
   isActive?: boolean
   unread?: boolean
   onClick?: () => void
+  onReplyAll?: () => void
 }
 
-export function ClusterCard({ cluster, isActive, unread = true, onClick }: ClusterCardProps) {
+export function ClusterCard({ cluster, isActive, unread = true, onClick, onReplyAll }: ClusterCardProps) {
   const formatDate = (timestamp: string) => {
     const date = new Date(timestamp)
     return date.toLocaleDateString([], { month: 'short', day: 'numeric' })
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      onClick?.()
+    }
   }
 
   // Determine badge colors based on priority
@@ -32,10 +40,13 @@ export function ClusterCard({ cluster, isActive, unread = true, onClick }: Clust
   }[cluster.priority] || 'bg-primary'
 
   return (
-    <button
+    <div
+      role="button"
+      tabIndex={0}
       onClick={onClick}
+      onKeyDown={handleKeyDown}
       className={cn(
-        "w-full text-left px-5 py-4 transition-all duration-200 group relative border-l-2 hover:translate-y-[-1px]",
+        "w-full text-left px-5 py-4 transition-all duration-200 group relative border-l-2 hover:translate-y-[-1px] cursor-pointer",
         isActive
           ? "bg-primary/[0.05] border-primary shadow-sm"
           : "hover:bg-white/[0.02] border-transparent hover:shadow-sm"
@@ -96,7 +107,7 @@ export function ClusterCard({ cluster, isActive, unread = true, onClick }: Clust
           <button
             onClick={(e) => {
               e.stopPropagation()
-              console.log('Reply All')
+              onReplyAll?.()
             }}
             className="p-1 hover:bg-white/[0.05] rounded transition-colors text-muted-foreground hover:text-foreground"
             title="Reply All"
@@ -127,6 +138,6 @@ export function ClusterCard({ cluster, isActive, unread = true, onClick }: Clust
       </div>
       
       {/* Selection Border logic handled by border-l-2 above */}
-    </button>
+    </div>
   )
 }

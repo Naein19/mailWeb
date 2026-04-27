@@ -4,56 +4,26 @@ import {
   LayoutDashboard, 
   Mail, 
   BarChart3, 
-  LogOut, 
   ChevronLeft, 
   ChevronRight,
-  Settings,
-  User as UserIcon,
-  Link as LinkIcon,
-  Bell,
-  ArrowRight,
-  Plus,
-  Check,
-  ChevronDown,
-  Globe
+  ArrowRight
 } from 'lucide-react'
 import { useRouter, usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { useDashboardStore } from '@/lib/store'
-import { useAuth } from '@/components/auth-provider'
-import { signOut, signInWithGoogleAddAccount, setActiveAccountStorage, getConnectedAccounts } from '@/lib/auth'
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 export function Sidebar() {
   const router = useRouter()
   const pathname = usePathname()
-  const { user } = useAuth()
   const { 
     sidebarOpen, 
-    setSidebarOpen, 
-    activeAccount, 
-    setActiveAccount, 
-    connectedAccounts 
+    setSidebarOpen
   } = useDashboardStore()
   const [mounted, setMounted] = useState(false)
-  const [showAccountSwitcher, setShowAccountSwitcher] = useState(false)
-  const accountDropdownRef = useRef<HTMLDivElement>(null)
 
   // Handle click outside to close dropdown
-  useEffect(() => {
-    if (!showAccountSwitcher) return
-
-    const handleClickOutside = (event: MouseEvent) => {
-      if (accountDropdownRef.current && !accountDropdownRef.current.contains(event.target as Node)) {
-        setShowAccountSwitcher(false)
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [showAccountSwitcher])
-
   useEffect(() => {
     setMounted(true)
     if (typeof window !== 'undefined') {
@@ -61,11 +31,6 @@ export function Sidebar() {
       if (stored !== null) {
         setSidebarOpen(stored === 'true')
       }
-    }
-
-    const accounts = getConnectedAccounts()
-    if (accounts.length > 0) {
-      useDashboardStore.getState().setConnectedAccounts(accounts)
     }
   }, [setSidebarOpen])
 
@@ -77,45 +42,9 @@ export function Sidebar() {
     }
   }
 
-  const handleLogout = async () => {
-    try {
-      await signOut()
-      router.push('/login')
-    } catch (error) {
-      console.error('Logout failed:', error)
-    }
-  }
 
-  const handleAddAccount = async () => {
-    try {
-      setShowAccountSwitcher(false)
-      await signInWithGoogleAddAccount()
-    } catch (error) {
-      console.error('Failed to start add account flow:', error)
-    }
-  }
-
-  const handleSwitchAccount = (email: string) => {
-    setActiveAccount(email)
-    setActiveAccountStorage(email)
-    setShowAccountSwitcher(false)
-  }
 
   // Helper function to get avatar color based on email hash
-  const getAvatarColor = (email: string) => {
-    const hash = email.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
-    const colors = [
-      'from-blue-500 to-blue-600',
-      'from-purple-500 to-purple-600',
-      'from-pink-500 to-pink-600',
-      'from-cyan-500 to-cyan-600',
-      'from-emerald-500 to-emerald-600',
-      'from-orange-500 to-orange-600',
-      'from-indigo-500 to-indigo-600',
-      'from-rose-500 to-rose-600',
-    ]
-    return colors[hash % colors.length]
-  }
 
   if (!mounted) return null
 
@@ -157,83 +86,7 @@ export function Sidebar() {
         </AnimatePresence>
       </div>
 
-      {/* Account Switcher */}
-      <div className="px-4 mb-4 relative" ref={accountDropdownRef}>
-        <button
-          onClick={() => sidebarOpen && setShowAccountSwitcher(!showAccountSwitcher)}
-          className={cn(
-            "w-full flex items-center gap-3 p-3 rounded-xl border border-white/10 bg-white/[0.02] hover:bg-white/[0.05] transition-all group",
-            !sidebarOpen && "justify-center px-0 border-none bg-transparent"
-          )}
-        >
-          <div className={cn(
-            "w-8 h-8 rounded-lg bg-gradient-to-br flex items-center justify-center border border-white/10 shrink-0 font-bold text-xs text-white",
-            activeAccount ? getAvatarColor(activeAccount) : "from-gray-500 to-gray-600"
-          )}>
-            {activeAccount ? activeAccount[0].toUpperCase() : <Globe size={14} className="text-muted-foreground" />}
-          </div>
-          {sidebarOpen && (
-            <>
-              <div className="flex-1 text-left min-w-0">
-                <p className="text-[11px] font-bold text-foreground truncate">
-                  {activeAccount ? activeAccount.split('@')[0] : 'Connect Account'}
-                </p>
-                <p className="text-[9px] text-muted-foreground truncate opacity-60">
-                   {activeAccount || 'No account active'}
-                </p>
-              </div>
-              <ChevronDown size={14} className={cn("text-muted-foreground transition-transform flex-shrink-0", showAccountSwitcher && "rotate-180")} />
-            </>
-          )}
-        </button>
 
-        {/* Account Dropdown */}
-        <AnimatePresence>
-          {showAccountSwitcher && sidebarOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: -10, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -10, scale: 0.95 }}
-              transition={{ duration: 0.15, ease: "easeOut" }}
-              className="absolute left-4 right-4 top-full mt-2 bg-[#1A1F26] border border-[#2D333B] rounded-xl shadow-2xl z-[100] p-1.5 space-y-1"
-            >
-              <p className="px-3 py-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-50">Select Account</p>
-              
-              <div className="max-h-[200px] overflow-y-auto scrollbar-minimal space-y-1">
-                {connectedAccounts.map((acc) => (
-                  <button
-                    key={acc}
-                    onClick={() => handleSwitchAccount(acc)}
-                    className={cn(
-                      "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs transition-colors group",
-                      activeAccount === acc ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-white/[0.03]"
-                    )}
-                  >
-                    <div className={cn(
-                      "w-5 h-5 rounded-md bg-gradient-to-br flex items-center justify-center text-[10px] font-bold text-white shrink-0",
-                      getAvatarColor(acc)
-                    )}>
-                       {acc[0].toUpperCase()}
-                    </div>
-                    <span className="flex-1 text-left truncate">{acc}</span>
-                    {activeAccount === acc && <Check size={12} className="shrink-0" />}
-                  </button>
-                ))}
-              </div>
-
-              <div className="border-t border-white/5 pt-1.5 mt-1">
-                <button
-                  onClick={handleAddAccount}
-                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-primary hover:bg-primary/5 transition-colors"
-                >
-                  <Plus size={14} />
-                  <span>Connect Gmail</span>
-                </button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
 
       {/* Navigation */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-none px-4 space-y-8">
@@ -277,30 +130,6 @@ export function Sidebar() {
             )
           })}
         </nav>
-
-        {/* System Group */}
-        {sidebarOpen && (
-          <div className="space-y-4">
-            <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-50">System</p>
-            <nav className="space-y-1">
-              {[
-                { label: 'Settings', icon: Settings, href: '/settings' },
-                { label: 'Profile', icon: UserIcon, href: '/profile' },
-                { label: 'Integrations', icon: LinkIcon, href: '/integrations' },
-                { label: 'Notifications', icon: Bell, href: '/notifications' },
-              ].map((item) => (
-                <button
-                  key={item.label}
-                  onClick={() => router.push(item.href)}
-                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/[0.03] transition-all duration-200 group"
-                >
-                  <item.icon size={16} className="opacity-70 group-hover:opacity-100" />
-                  <span className="text-xs font-bold tracking-tight">{item.label}</span>
-                </button>
-              ))}
-            </nav>
-          </div>
-        )}
 
         {/* Health Widget */}
         {sidebarOpen && (
@@ -356,30 +185,8 @@ export function Sidebar() {
         )}
       </div>
 
-      {/* Bottom Profile Section */}
-      <div className="p-4 border-t border-border mt-auto">
-        {sidebarOpen && user ? (
-          <div className="flex items-center gap-3 p-3 rounded-2xl bg-secondary/30 border border-border group cursor-pointer hover:bg-secondary/50 transition-colors">
-            <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center font-bold text-primary-foreground text-xs shadow-lg">
-              {user.email?.[0].toUpperCase()}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-bold text-foreground truncate">{user.email?.split('@')[0] || 'User'}</p>
-              <p className="text-[10px] text-muted-foreground truncate opacity-70">{user.email || 'user@example.com'}</p>
-            </div>
-          </div>
-        ) : (
-          <div className="w-10 h-10 mx-auto rounded-xl bg-primary flex items-center justify-center font-bold text-primary-foreground text-xs" />
-        )}
-        
-        <button
-          onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-3 mt-2 rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all duration-200 group"
-        >
-          <LogOut size={18} className="transition-transform group-hover:-translate-x-0.5" />
-          {sidebarOpen && <span className="text-sm font-bold tracking-tight">Logout</span>}
-        </button>
-      </div>
+      {/* Spacer */}
+      <div className="mt-auto" />
     </motion.aside>
   )
 }

@@ -1,22 +1,45 @@
-<svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="logo-gradient" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#3B82F6"/> <!-- blue-500 -->
-      <stop offset="1" stop-color="#22D3EE"/> <!-- cyan-400 -->
+    <linearGradient id="atom-gradient" x1="0" y1="0" x2="128" y2="128">
+      <stop offset="0%" stop-color="#3B82F6"/>
+      <stop offset="100%" stop-color="#22D3EE"/>
     </linearGradient>
   </defs>
-  <!-- Main C shape -->
-  <path d="M80 20C70 10 55 5 40 10C20 15 10 35 10 55C10 75 25 90 45 90C60 90 75 80 85 65" stroke="url(#logo-gradient)" stroke-width="12" stroke-linecap="round" fill="none"/>
   
-  <!-- Cluster nodes -->
-  <circle cx="45" cy="50" r="6" fill="url(#logo-gradient)"/>
-  <circle cx="58" cy="40" r="5" fill="url(#logo-gradient)"/>
-  <circle cx="58" cy="62" r="5" fill="url(#logo-gradient)"/>
-  <circle cx="68" cy="51" r="5" fill="url(#logo-gradient)"/>
+  <!-- Rounded square border -->
+  <rect x="12" y="12" width="104" height="104" rx="20" ry="20" fill="none" stroke="url(#atom-gradient)" stroke-width="2.5"/>
   
-  <!-- Connections -->
-  <path d="M45 50L58 40" stroke="url(#logo-gradient)" stroke-width="3" stroke-linecap="round"/>
-  <path d="M45 50L58 62" stroke="url(#logo-gradient)" stroke-width="3" stroke-linecap="round"/>
-  <path d="M58 40L68 51" stroke="url(#logo-gradient)" stroke-width="3" stroke-linecap="round"/>
-  <path d="M58 62L68 51" stroke="url(#logo-gradient)" stroke-width="3" stroke-linecap="round"/>
+  <!-- Outer electron orbits -->
+  <g fill="none" stroke="url(#atom-gradient)" stroke-width="1.8" opacity="0.7">
+    <!-- First orbit (horizontal) -->
+    <ellipse cx="64" cy="64" rx="30" ry="14"/>
+    
+    <!-- Second orbit (rotated 60°) -->
+    <g transform="translate(64, 64) rotate(60) translate(-64, -64)">
+      <ellipse cx="64" cy="64" rx="30" ry="14"/>
+    </g>
+    
+    <!-- Third orbit (rotated 120°) -->
+    <g transform="translate(64, 64) rotate(120) translate(-64, -64)">
+      <ellipse cx="64" cy="64" rx="30" ry="14"/>
+    </g>
+  </g>
+  
+  <!-- Center nucleus -->
+  <circle cx="64" cy="64" r="5.5" fill="url(#atom-gradient)"/>
+  
+  <!-- Electron dots on orbits -->
+  <g fill="url(#atom-gradient)">
+    <!-- Electrons on first orbit -->
+    <circle cx="94" cy="64" r="3"/>
+    <circle cx="34" cy="64" r="3"/>
+    
+    <!-- Electrons on second orbit (60° rotation) -->
+    <circle cx="48.5" cy="38" r="3"/>
+    <circle cx="79.5" cy="90" r="3"/>
+    
+    <!-- Electrons on third orbit (120° rotation) -->
+    <circle cx="79.5" cy="38" r="3"/>
+    <circle cx="48.5" cy="90" r="3"/>
+  </g>
 </svg>

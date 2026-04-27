@@ -2,19 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSupabaseClient } from '@/app/api/_lib/supabase'
 
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ clusterId: string }> }
 ) {
   try {
     const { clusterId } = await params
-    const accountId = request.nextUrl.searchParams.get('account_id') || ''
-    if (!accountId) {
-      return NextResponse.json([], { status: 200 })
-    }
     const supabase = getServerSupabaseClient()
     const { data, error } = await supabase.rpc('get_emails_for_cluster', {
       p_cluster_id: clusterId,
-      p_account_id: accountId,
     })
 
     if (error) {

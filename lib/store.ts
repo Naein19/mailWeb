@@ -5,12 +5,16 @@ interface DashboardStore {
   // UI State
   selectedClusterId: string | null
   selectedEmailId: string | null
+  selectedEmail: Email | null  // For email read view
   isEmailDrawerOpen: boolean
   sidebarOpen: boolean
   isComposerOpen: boolean
   composerType: 'reply_all' | 'reply_one' | 'forward' | null
   composerRecipient: string | null
+  composerSubject: string | null
+  composerBody: string | null
   theme: 'light' | 'dark'
+  replyAllOpen: boolean  // Auto-open reply all compose
   
   // Data State
   clusters: Cluster[]
@@ -23,9 +27,11 @@ interface DashboardStore {
   // Actions
   setSelectedClusterId: (id: string | null) => void
   setSelectedEmailId: (id: string | null) => void
+  setSelectedEmail: (email: Email | null) => void
   setEmailDrawerOpen: (open: boolean) => void
   setSidebarOpen: (open: boolean) => void
-  setComposerOpen: (open: boolean, type?: 'reply_all' | 'reply_one' | 'forward', recipient?: string) => void
+  setComposerOpen: (open: boolean, type?: 'reply_all' | 'reply_one' | 'forward', recipient?: string, subject?: string) => void
+  setComposerBody: (body: string) => void
   setTheme: (theme: 'light' | 'dark') => void
   setClusters: (clusters: Cluster[]) => void
   setEmails: (clusterId: string, emails: Email[]) => void
@@ -36,6 +42,7 @@ interface DashboardStore {
   setActiveAccount: (email: string) => void
   setConnectedAccounts: (emails: string[]) => void
   setFilters: (filters: ClusterFilters) => void
+  setReplyAllOpen: (open: boolean) => void
   
   // Computed
   getFilteredClusters: () => Cluster[]
@@ -47,12 +54,16 @@ interface DashboardStore {
 export const useDashboardStore = create<DashboardStore>((set, get) => ({
   selectedClusterId: null,
   selectedEmailId: null,
+  selectedEmail: null,
   isEmailDrawerOpen: false,
   sidebarOpen: true,
   isComposerOpen: false,
   composerType: null,
   composerRecipient: null,
+  composerSubject: null,
+  composerBody: null,
   theme: 'dark',
+  replyAllOpen: false,
   clusters: [],
   emails: {},
   currentUser: null,
@@ -60,13 +71,16 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
   connectedAccounts: [],
   filters: {},
 
-  setSelectedClusterId: (id: string | null) => set({ selectedClusterId: id }),
+  setSelectedClusterId: (id: string | null) => set({ selectedClusterId: id, selectedEmail: null }),
   setSelectedEmailId: (id: string | null) => set({ selectedEmailId: id }),
+  setSelectedEmail: (email: Email | null) => set({ selectedEmail: email }),
   setEmailDrawerOpen: (open: boolean) => set({ isEmailDrawerOpen: open }),
   setSidebarOpen: (open: boolean) => set({ sidebarOpen: open }),
-  setComposerOpen: (open: boolean, type?: 'reply_all' | 'reply_one' | 'forward', recipient?: string) =>
-    set({ isComposerOpen: open, composerType: type || null, composerRecipient: recipient || null }),
+  setComposerOpen: (open: boolean, type?: 'reply_all' | 'reply_one' | 'forward', recipient?: string, subject?: string) =>
+    set({ isComposerOpen: open, composerType: type || null, composerRecipient: recipient || null, composerSubject: subject || null, composerBody: '' }),
+  setComposerBody: (body: string) => set({ composerBody: body }),
   setTheme: (theme: 'light' | 'dark') => set({ theme }),
+  setReplyAllOpen: (open: boolean) => set({ replyAllOpen: open }),
   
   setClusters: (clusters: Cluster[]) => set({ clusters }),
   setEmails: (clusterId: string, emails: Email[]) =>
@@ -97,7 +111,7 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
   setCurrentUser: (user: User | null) => set({ currentUser: user }),
   setActiveAccount: (email: string) => {
     if (typeof window !== 'undefined') localStorage.setItem('active_account', email)
-    set({ activeAccount: email, selectedClusterId: null, clusters: [], emails: {} })
+    set({ activeAccount: email, selectedClusterId: null, selectedEmail: null, clusters: [], emails: {} })
   },
   setConnectedAccounts: (emails: string[]) => set({ connectedAccounts: emails }),
   setFilters: (filters: ClusterFilters) => set({ filters }),
