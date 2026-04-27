@@ -5,7 +5,7 @@ import { useDashboardStore } from '@/lib/store'
 import { supabase } from '@/lib/auth'
 import { ClusterCard } from './cluster-card'
 import type { Cluster } from '@/lib/types'
-import { Loader2, ListFilter } from 'lucide-react'
+import { Loader2, ListFilter, X } from 'lucide-react'
 
 export function ClusterList({ isLoading }: { isLoading?: boolean }) {
   const {
@@ -14,10 +14,13 @@ export function ClusterList({ isLoading }: { isLoading?: boolean }) {
     setEmails,
     getFilteredClusters,
     activeAccount,
+    filters,
+    setFilters,
   } = useDashboardStore()
 
   const [loadingClusterId, setLoadingClusterId] = useState<string | null>(null)
   const filteredClusters = getFilteredClusters()
+  const hasSearchFilter = !!filters.search
 
   const handleClusterClick = async (cluster: Cluster) => {
     setSelectedClusterId(cluster.id)
@@ -28,8 +31,32 @@ export function ClusterList({ isLoading }: { isLoading?: boolean }) {
         p_cluster_id: cluster.id,
         p_account_id: activeAccount || '',
       })
-      if (error) throw error
-      const emails = (data || []).map((email: any) => ({
+      if (error) {
+        console.error('[ClusterList] Failed to load emails for cluster:', {
+          clusterId: cluster.id,
+          message: error.message,
+          error: error,
+        })
+        throw error
+      }
+
+      // Validate email data is an array
+      if (!Array.isArray(data)) {
+        console.warn('[ClusterList] Email response is not an array:', {
+          type: typeof data,
+          isArray: Array.isArray(data),
+          clusterId: cluster.id,
+        })
+        setEmails(cluster.id, [])
+        return
+      }
+
+      console.log('[ClusterList] Emails loaded successfully:', {
+        clusterId: cluster.id,
+        emailCount: data.length,
+      })
+
+      const emails = data.map((email: any) => ({
         id: email.message_id,
         cluster_id: cluster.id,
         sender: email.sender || 'Unknown',
@@ -43,10 +70,18 @@ export function ClusterList({ isLoading }: { isLoading?: boolean }) {
       }))
       setEmails(cluster.id, emails)
     } catch (error) {
-      console.error('Failed to load emails:', error)
+      console.error('[ClusterList] Catch block - Failed to load emails:', {
+        message: error instanceof Error ? error.message : String(error),
+        clusterId: cluster.id,
+        error: error,
+      })
     } finally {
       setLoadingClusterId(null)
     }
+  }
+
+  const handleClearSearch = () => {
+    setFilters({ search: '' })
   }
 
   if (isLoading) {
@@ -90,9 +125,25 @@ export function ClusterList({ isLoading }: { isLoading?: boolean }) {
       {/* List */}
       <div className="flex-1 overflow-y-auto scrollbar-minimal">
         {filteredClusters.length === 0 ? (
-          <div className="h-40 flex flex-col items-center justify-center text-center px-6">
-            <p className="text-xs font-bold text-muted-foreground mb-1">No clusters found</p>
-            <p className="text-[10px] text-muted-foreground/60">Try adjusting your search or filters.</p>
+          <div className="h-full flex flex-col items-center justify-center text-center px-6 py-8">
+            {hasSearchFilter ? (
+              <>
+                <p className="text-xs font-bold text-muted-foreground mb-2">No results for "{filters.search}"</p>
+                <p className="text-[10px] text-muted-foreground/60 mb-4">Try a different search term</p>
+                <button
+                  onClick={handleClearSearch}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-xs text-foreground transition-colors"
+                >
+                  <X size={12} />
+                  Clear search
+                </button>
+              </>
+            ) : (
+              <>
+                <p className="text-xs font-bold text-muted-foreground mb-1">No clusters yet</p>
+                <p className="text-[10px] text-muted-foreground/60">Your inbox is quiet — connecting your first Gmail account will start the clustering process</p>
+              </>
+            )}
           </div>
         ) : (
           <div className="divide-y divide-border/20">

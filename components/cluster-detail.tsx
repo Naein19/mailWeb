@@ -44,8 +44,15 @@ export function ClusterDetail() {
     low:    'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
   }[cluster.priority] || 'bg-secondary text-muted-foreground'
 
-  // Extract participants (unique senders)
-  const participants = Array.from(new Set(emails.map(e => e.sender))).slice(0, 3)
+  // Extract participants (unique senders) with validation
+  if (!Array.isArray(emails)) {
+    console.warn('[ClusterDetail] Emails is not an array:', {
+      type: typeof emails,
+      isArray: Array.isArray(emails),
+    })
+  }
+  const participants = (Array.isArray(emails) ? emails : []).map(e => e.sender ? e.sender : 'Unknown')
+  const uniqueParticipants = Array.from(new Set(participants)).slice(0, 3)
 
   return (
     <div className="h-full flex flex-col bg-background overflow-hidden">
@@ -148,19 +155,19 @@ export function ClusterDetail() {
                 <User size={14} className="text-muted-foreground opacity-50" />
                 <h3 className="text-xs font-bold text-foreground uppercase tracking-widest">Participants</h3>
               </div>
-              <button className="text-[10px] font-bold text-primary hover:underline bg-primary/5 px-3 py-1 rounded-lg">View All ({participants.length})</button>
+              <button className="text-[10px] font-bold text-primary hover:underline bg-primary/5 px-3 py-1 rounded-lg">View All ({uniqueParticipants.length})</button>
             </div>
             
             <div className="flex flex-wrap gap-4">
-              {participants.map((sender, i) => (
+              {uniqueParticipants.map((sender, i) => (
                 <div key={i} className="flex items-center gap-3 pr-6 py-2 border-r border-border last:border-0 hover:bg-secondary/20 rounded-xl transition-all cursor-pointer group">
                   <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center font-bold text-primary-foreground text-xs shadow-md group-hover:scale-105 transition-transform">
-                    {sender[0].toUpperCase()}
+                    {(sender || 'U')[0].toUpperCase()}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs font-bold text-foreground truncate">{sender.split('<')[0].trim()}</p>
+                    <p className="text-xs font-bold text-foreground truncate">{(sender || 'Unknown').split('<')[0].trim()}</p>
                     <p className="text-[10px] text-muted-foreground truncate opacity-60">
-                      {sender.includes('<') ? sender.split('<')[1].replace('>', '') : sender}
+                      {(sender || '').includes('<') ? (sender || '').split('<')[1].replace('>', '') : sender || 'No email'}
                     </p>
                   </div>
                 </div>
@@ -178,7 +185,11 @@ export function ClusterDetail() {
             </div>
             
             <div className="rounded-3xl border border-border overflow-hidden bg-white/[0.01] divide-y divide-border">
-              {emails.length === 0 ? (
+              {!Array.isArray(emails) ? (
+                <div className="h-40 flex items-center justify-center bg-secondary/10">
+                  <p className="text-xs text-muted-foreground font-bold italic">Error loading emails</p>
+                </div>
+              ) : emails.length === 0 ? (
                 <div className="h-40 flex items-center justify-center bg-secondary/10">
                   <p className="text-xs text-muted-foreground font-bold italic">No emails found</p>
                 </div>

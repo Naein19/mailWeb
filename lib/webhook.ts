@@ -177,9 +177,18 @@ export async function sendWebhookReply(
  * Extract unique email addresses from emails
  */
 export function extractRecipients(emails: Email[]): string[] {
+  // Validate emails is an array
+  if (!Array.isArray(emails)) {
+    console.error('[Webhook] extractRecipients called with non-array:', {
+      type: typeof emails,
+      isArray: Array.isArray(emails),
+    })
+    return []
+  }
+
   const recipients = new Set<string>()
   emails.forEach((email) => {
-    if (email.sender_email) {
+    if (email && email.sender_email) {
       recipients.add(email.sender_email)
     }
   })

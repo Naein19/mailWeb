@@ -22,7 +22,7 @@ import { cn } from '@/lib/utils'
 import { useDashboardStore } from '@/lib/store'
 import { useAuth } from '@/components/auth-provider'
 import { signOut, signInWithGoogleAddAccount, setActiveAccountStorage, getConnectedAccounts } from '@/lib/auth'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 export function Sidebar() {
@@ -38,6 +38,21 @@ export function Sidebar() {
   } = useDashboardStore()
   const [mounted, setMounted] = useState(false)
   const [showAccountSwitcher, setShowAccountSwitcher] = useState(false)
+  const accountDropdownRef = useRef<HTMLDivElement>(null)
+
+  // Handle click outside to close dropdown
+  useEffect(() => {
+    if (!showAccountSwitcher) return
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (accountDropdownRef.current && !accountDropdownRef.current.contains(event.target as Node)) {
+        setShowAccountSwitcher(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [showAccountSwitcher])
 
   useEffect(() => {
     setMounted(true)
@@ -73,6 +88,7 @@ export function Sidebar() {
 
   const handleAddAccount = async () => {
     try {
+      setShowAccountSwitcher(false)
       await signInWithGoogleAddAccount()
     } catch (error) {
       console.error('Failed to start add account flow:', error)
@@ -83,7 +99,22 @@ export function Sidebar() {
     setActiveAccount(email)
     setActiveAccountStorage(email)
     setShowAccountSwitcher(false)
-    // Reload data will be triggered by app/page.tsx effect watching activeAccount
+  }
+
+  // Helper function to get avatar color based on email hash
+  const getAvatarColor = (email: string) => {
+    const hash = email.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+    const colors = [
+      'from-blue-500 to-blue-600',
+      'from-purple-500 to-purple-600',
+      'from-pink-500 to-pink-600',
+      'from-cyan-500 to-cyan-600',
+      'from-emerald-500 to-emerald-600',
+      'from-orange-500 to-orange-600',
+      'from-indigo-500 to-indigo-600',
+      'from-rose-500 to-rose-600',
+    ]
+    return colors[hash % colors.length]
   }
 
   if (!mounted) return null
@@ -127,20 +158,19 @@ export function Sidebar() {
       </div>
 
       {/* Account Switcher */}
-      <div className="px-4 mb-4 relative">
+      <div className="px-4 mb-4 relative" ref={accountDropdownRef}>
         <button
           onClick={() => sidebarOpen && setShowAccountSwitcher(!showAccountSwitcher)}
           className={cn(
-            "w-full flex items-center gap-3 p-2 rounded-xl border border-white/[0.05] bg-white/[0.02] hover:bg-white/[0.05] transition-all group",
+            "w-full flex items-center gap-3 p-3 rounded-xl border border-white/10 bg-white/[0.02] hover:bg-white/[0.05] transition-all group",
             !sidebarOpen && "justify-center px-0 border-none bg-transparent"
           )}
         >
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center border border-white/10 shrink-0">
-            {activeAccount ? (
-              <span className="text-[10px] font-bold text-primary">{activeAccount[0].toUpperCase()}</span>
-            ) : (
-               <Globe size={14} className="text-muted-foreground" />
-            )}
+          <div className={cn(
+            "w-8 h-8 rounded-lg bg-gradient-to-br flex items-center justify-center border border-white/10 shrink-0 font-bold text-xs text-white",
+            activeAccount ? getAvatarColor(activeAccount) : "from-gray-500 to-gray-600"
+          )}>
+            {activeAccount ? activeAccount[0].toUpperCase() : <Globe size={14} className="text-muted-foreground" />}
           </div>
           {sidebarOpen && (
             <>
@@ -152,7 +182,7 @@ export function Sidebar() {
                    {activeAccount || 'No account active'}
                 </p>
               </div>
-              <ChevronDown size={14} className={cn("text-muted-foreground transition-transform", showAccountSwitcher && "rotate-180")} />
+              <ChevronDown size={14} className={cn("text-muted-foreground transition-transform flex-shrink-0", showAccountSwitcher && "rotate-180")} />
             </>
           )}
         </button>
@@ -164,6 +194,7 @@ export function Sidebar() {
               initial={{ opacity: 0, y: -10, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -10, scale: 0.95 }}
+              transition={{ duration: 0.15, ease: "easeOut" }}
               className="absolute left-4 right-4 top-full mt-2 bg-[#1A1F26] border border-[#2D333B] rounded-xl shadow-2xl z-[100] p-1.5 space-y-1"
             >
               <p className="px-3 py-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-50">Select Account</p>
@@ -178,11 +209,14 @@ export function Sidebar() {
                       activeAccount === acc ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-white/[0.03]"
                     )}
                   >
-                    <div className="w-5 h-5 rounded-md bg-white/5 flex items-center justify-center text-[10px] font-bold">
+                    <div className={cn(
+                      "w-5 h-5 rounded-md bg-gradient-to-br flex items-center justify-center text-[10px] font-bold text-white shrink-0",
+                      getAvatarColor(acc)
+                    )}>
                        {acc[0].toUpperCase()}
                     </div>
                     <span className="flex-1 text-left truncate">{acc}</span>
-                    {activeAccount === acc && <Check size={12} />}
+                    {activeAccount === acc && <Check size={12} className="shrink-0" />}
                   </button>
                 ))}
               </div>
@@ -270,16 +304,16 @@ export function Sidebar() {
 
         {/* Health Widget */}
         {sidebarOpen && (
-          <div className="px-3 py-5 rounded-2xl bg-white/[0.02] border border-white/[0.05] space-y-4 shadow-sm">
+          <div className="px-3 py-5 rounded-2xl bg-white/[0.02] border border-white/[0.05] space-y-4 shadow-sm group hover:bg-white/[0.03] transition-colors">
             <div className="flex items-center justify-between">
               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-50">System Health</p>
               <div className="flex items-center gap-1.5">
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)] animate-pulse" />
                 <span className="text-[10px] font-bold text-foreground">Healthy</span>
               </div>
             </div>
             
-            <div className="relative flex items-center justify-center py-2">
+            <div className="relative flex items-center justify-center py-2 group/health cursor-help" title="92% of emails processed successfully in the last 24 hours">
               <svg className="w-24 h-24 transform -rotate-90">
                 <circle
                   cx="48"
@@ -300,7 +334,7 @@ export function Sidebar() {
                   strokeDasharray="213"
                   strokeDashoffset={213 - (213 * 0.92)}
                   strokeLinecap="round"
-                  className="text-emerald-500"
+                  className="text-emerald-500 transition-all group-hover/health:text-emerald-400"
                 />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -311,11 +345,12 @@ export function Sidebar() {
             <div className="text-center space-y-1">
               <p className="text-[11px] font-bold text-foreground">Success Rate</p>
               <p className="text-[10px] text-muted-foreground">Last 24 hours</p>
+              <p className="text-[10px] text-muted-foreground opacity-50">Hover for details</p>
             </div>
 
-            <button className="w-full py-2 px-3 flex items-center justify-between bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 rounded-xl transition-all group">
+            <button className="w-full py-2 px-3 flex items-center justify-between bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 rounded-xl transition-all group/btn">
               <span className="text-[10px] font-bold text-foreground">View Analytics</span>
-              <ArrowRight size={12} className="text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+              <ArrowRight size={12} className="text-muted-foreground transition-transform group-hover/btn:translate-x-0.5" />
             </button>
           </div>
         )}

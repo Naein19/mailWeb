@@ -35,15 +35,15 @@ export function TopBar({ hideSearch = false }: TopBarProps) {
       {/* Search Area */}
       <div className="flex-1 max-w-xl">
         {!hideSearch && (
-          <div className="relative group max-w-md">
+          <div className="relative group max-w-md focus-within:scale-[1.01] transition-transform">
             <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/50 group-focus-within:text-foreground transition-colors" />
             <input
               type="text"
               placeholder="Search clusters or emails..."
               onChange={(e) => setFilters({ search: e.target.value })}
-              className="w-full bg-white/[0.03] border border-border rounded-xl px-9 py-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/30 shadow-sm"
+              className="w-full bg-white/[0.03] border border-border rounded-xl px-9 py-2 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/40 transition-all placeholder:text-muted-foreground/30 shadow-sm focus:scale-105 group-focus-within:border-primary/40"
             />
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 px-1.5 py-0.5 rounded border border-border bg-background shadow-sm pointer-events-none">
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 px-1.5 py-0.5 rounded border border-border bg-background shadow-sm pointer-events-none opacity-60 group-focus-within:opacity-100 transition-opacity">
               <Command size={10} className="text-muted-foreground" />
               <span className="text-[10px] font-bold text-muted-foreground">K</span>
             </div>
@@ -112,20 +112,19 @@ export function TopBar({ hideSearch = false }: TopBarProps) {
         <div className="relative">
           <button
             onClick={() => setShowMenu(!showMenu)}
-            className="flex items-center gap-3 p-1.5 hover:bg-white/[0.05] rounded-xl transition-all group"
+            className="flex items-center gap-2 px-3 py-1.5 hover:bg-white/[0.05] rounded-full transition-all group border border-border"
           >
-            <div className="flex flex-col items-end mr-1 hidden sm:flex">
-              <p className="text-xs font-bold text-foreground leading-none">{(activeAccount || user?.email || 'User').split('@')[0]}</p>
-              <p className="text-[9px] text-muted-foreground leading-none mt-1 opacity-60">{activeAccount || user?.email}</p>
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center font-bold text-white text-xs shadow-md">
+                {(activeAccount || user?.email)?.[0]?.toUpperCase() || 'U'}
+              </div>
+              <div className="flex flex-col items-start leading-none hidden sm:block">
+                <p className="text-xs font-bold text-foreground">{(activeAccount || user?.email || 'User').split('@')[0]}</p>
+                <p className="text-[9px] text-muted-foreground opacity-60">{activeAccount || user?.email}</p>
+              </div>
             </div>
-            <div className="hidden sm:flex items-center gap-1 mr-1">
-              <span className="w-2 h-2 rounded-full bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.5)]" />
-              <span className="text-[10px] text-muted-foreground max-w-[150px] truncate">{activeAccount || user?.email}</span>
-            </div>
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center font-bold text-primary-foreground text-xs shadow-md group-hover:scale-105 transition-transform">
-              {(activeAccount || user?.email)?.[0]?.toUpperCase() || 'U'}
-            </div>
-            <ChevronDown size={14} className="text-muted-foreground group-hover:text-foreground transition-all" />
+            <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)] flex-shrink-0" />
+            <ChevronDown size={14} className="text-muted-foreground group-hover:text-foreground transition-all flex-shrink-0" />
           </button>
 
           <AnimatePresence>

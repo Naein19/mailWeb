@@ -79,7 +79,7 @@ export function ComposerPanel() {
         message,
         reply_body: message,
         recipients,
-        original_email_data: emails.map(e => ({
+        original_email_data: (Array.isArray(emails) ? emails : []).map(e => ({
           id: e.id,
           sender: e.sender || 'Unknown',
           sender_email: e.sender_email || 'unknown@unknown.com',
@@ -87,7 +87,7 @@ export function ComposerPanel() {
           body: e.body || '',
           timestamp: e.timestamp || new Date().toISOString(),
         })),
-        email_count: emails.length,
+        email_count: (Array.isArray(emails) ? emails : []).length,
         timestamp: new Date().toISOString(),
       }
 

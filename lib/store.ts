@@ -104,6 +104,22 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
 
   getFilteredClusters: () => {
     const { clusters, filters } = get()
+    
+    // Validate clusters is an array
+    if (!Array.isArray(clusters)) {
+      console.error('[Store] Clusters is not an array:', {
+        type: typeof clusters,
+        isArray: Array.isArray(clusters),
+      })
+      return []
+    }
+    
+    // Validate filters object exists
+    if (!filters || typeof filters !== 'object') {
+      console.warn('[Store] Filters is not an object')
+      return clusters
+    }
+    
     return clusters.filter((cluster) => {
       if (filters.priority && cluster.priority !== filters.priority) {
         return false
@@ -126,11 +142,48 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
   getSelectedEmail: () => {
     const { selectedEmailId, selectedClusterId, emails } = get()
     if (!selectedClusterId || !selectedEmailId) return undefined
-    return (emails[selectedClusterId] || []).find((e) => e.id === selectedEmailId)
+    
+    // Validate emails object exists
+    if (!emails || typeof emails !== 'object') {
+      console.warn('[Store] Emails object is invalid')
+      return undefined
+    }
+    
+    // Get cluster emails and validate it's an array
+    const clusterEmails = emails[selectedClusterId]
+    if (!Array.isArray(clusterEmails)) {
+      console.warn('[Store] Cluster emails is not an array:', {
+        selectedClusterId,
+        type: typeof clusterEmails,
+        isArray: Array.isArray(clusterEmails),
+      })
+      return undefined
+    }
+    
+    return clusterEmails.find((e) => e.id === selectedEmailId)
   },
 
   getSelectedClusterEmails: () => {
     const { selectedClusterId, emails } = get()
-    return selectedClusterId ? emails[selectedClusterId] || [] : []
+    if (!selectedClusterId) return []
+    
+    // Validate emails object exists
+    if (!emails || typeof emails !== 'object') {
+      console.warn('[Store] Emails object is invalid')
+      return []
+    }
+    
+    // Get cluster emails and validate it's an array
+    const clusterEmails = emails[selectedClusterId]
+    if (!Array.isArray(clusterEmails)) {
+      console.warn('[Store] Cluster emails is not an array:', {
+        selectedClusterId,
+        type: typeof clusterEmails,
+        isArray: Array.isArray(clusterEmails),
+      })
+      return []
+    }
+    
+    return clusterEmails
   },
 }))
